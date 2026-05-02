@@ -1,114 +1,158 @@
-# Autorunne 商业计划书（简版）
+# Autorunne 商业计划书（开源版）
 
-## 1. 项目名称
-Autorunne
+## 1. 项目概述
 
-## 2. 项目定位
-Autorunne 不是普通的 AI 聊天壳，也不是单一模型插件。
-它是一个 **面向真实开发项目的 AI 工作流基础设施**：
+Autorunne 是一个面向 AI 编程时代的本地项目工作流工具。它把 Git 仓库变成可恢复、可交接、可多 agent 接力推进的开发工作区。
 
-> 把任意 Git 项目变成可恢复、可协作、可多模型接力推进的 AI 开发工作区。
-> Hermes 记住用户和跨项目经验，Autorunne 记住这个 repo 的项目状态。
+项目采用开源优先策略：核心 CLI 免费开放，先服务开发者、课程、顾问交付和小团队真实项目，再在团队协作、行业模板、私有部署和培训服务上形成商业收入。
 
-## 3. 市场痛点
-当前 AI 编程工具普遍存在：
-- 会写代码，但不擅长长期连续推进项目
-- 换会话、换模型、换人后上下文断裂
-- 开发态与交付态容易混在一起
-- 大多数工具绑定某个编辑器或某个模型，迁移成本高
+## 2. 背景
 
-## 4. Autorunne 的解决方案
-Autorunne 提供：
-- 本地项目记忆层 `.autorunne/`
-- 标准化任务/决策/下一步恢复机制
-- 多模型共享工作流
-- frontend/backend/contracts 等多包项目自动识别与命令派生
-- 开发态与正式交付态分离
-- 命令行优先，编辑器只是入口，不是核心
+AI coding agent 已经能写代码，但真实开发不是一次生成就结束。用户真正卡住的地方通常是：
 
-## 5. 目标用户
+- 项目上下文断在聊天窗口里
+- 换模型、换人、换会话后接不上
+- 开发过程没有清楚的任务和决策记录
+- 客户交付前缺少可复盘的验证和收尾
+- 团队想用 AI，但不想先上重型平台
+
+这类问题会随着 AI 编程普及越来越明显。谁能把“持续开发”这件事做稳，谁就能成为 AI 开发流程里的基础工具。
+
+## 3. 产品定位
+
+Autorunne 的定位不是 AI IDE，也不是聊天壳。
+
+它是：
+
+> 放在 Git 仓库里的 AI 项目交接本和工作流底座。
+
+Hermes、Codex、Claude Code、Cursor、Copilot 负责执行；Autorunne 负责让项目状态、任务、决策、验证和下一步留在仓库里。
+
+补一句产品边界：Hermes 记住用户和跨项目经验，Autorunne 记住这个 repo 的项目状态。
+
+## 4. 目标用户
+
 ### 第一阶段
+
 - AI 编程重度用户
 - 独立开发者
-- 接外包/交付项目的人
-- 用 Hermes/Claude/Codex 混合开发的人
+- 接外包和定制开发的人
+- AI 编程课程讲师
+- 使用 Hermes / Codex / Claude Code 混合开发的人
 
 ### 第二阶段
+
 - 小型开发团队
-- AI 开发流程顾问/培训者
-- 想把 AI 编程流程标准化的服务商
+- AI 开发顾问
+- 做软件交付标准化的服务商
+- 需要把项目交接流程产品化的培训机构
 
-## 6. 产品形态
-### 免费开源层（0.6.16 已覆盖）
-- state-first CLI
-- `.autorunne/state/*` + `.autorunne/views/*`
-- 基础命令：open/migrate/start/checkpoint/finish/record/status/show/history/trace/doctor/export/release
-- repo 级 skill / wrapper / VS Code 接入
-- direct agent 任务入口：`autorunne ingest`
-- 多包 Node/TypeScript 项目识别：`frontend/`、`backend/`、`contracts/`、`apps/*`、`packages/*`
-- 轻量 Python 教学/demo 项目识别：无 package manager 也能给出 `python app.py`、`python -m pytest -q`
-- Codex / Claude / Hermes / Cursor / Copilot repo 入口统一指向 Autorunne workflow
+## 5. 免费开源层（0.6.16 已覆盖）
 
-### 未来商业层
-- 团队协作版模板
-- 行业化工作流包
-- 可视化仪表盘
-- 私有部署 / 企业版
-- 配套培训与咨询服务
-- 面向交付团队的标准化流程资产包
+0.6.16 已覆盖：
+
+- `open / sync / ingest / start / checkpoint / finish / status / doctor`
+- `.autorunne/state/*` 机器状态
+- `.autorunne/views/*` 人和 agent 可读文档
+- Codex / Claude / Hermes / Cursor / Copilot 入口说明
+- VS Code 文件夹打开自动接入
+- 多包 Node/TypeScript 项目识别
+- 轻量 Python 教学 demo 识别
+- GitHub Release + PyPI 安装链路
+- 人可读的 `STATUS.md` 项目状态页
+
+开源层的目标是把核心体验做扎实，让用户敢在真实项目里持续使用。
+
+## 6. 商业化方向
+
+### 课程和训练营
+
+把 Autorunne 作为 AI 编程课程里的项目持续推进方法。不是教学生只写 prompt，而是教他们如何把 AI 项目做完、验证、交接和复盘。
+
+### 顾问和交付服务
+
+为客户建立 repo-local AI 开发流程：安装、项目接入、agent 使用规范、交付收尾模板、团队使用手册。
+
+### 团队版能力
+
+未来可以提供：
+
+- 团队协作模板
+- 统一状态看板
+- 多项目报告
+- 角色权限和交付审计
+- 私有部署包
+
+### 行业模板包
+
+面向教培、私域运营、SaaS、小型电商、本地生活等场景，提供项目结构、任务模板、交付清单和 agent 使用规范。
 
 ## 7. 收入模式
-- 开源 + 高级版订阅
-- 企业部署/顾问服务
-- AI 开发流程培训课程
-- 行业解决方案模板包
-- 与 Hermes / 业务文档 / 教学体系联动销售
-- 面向“AI 编程交付训练营”的项目工作流工具包
 
-## 8. 核心竞争力
-- 不依赖单一模型
-- 不依赖单一编辑器
-- 强调“项目连续推进”而不是一次性问答
-- 适合中国用户的真实交付场景
-- 可与 Hermes 聊天入口天然联动
-- 与 Hermes 记忆系统互补：Hermes 管用户记忆，Autorunne 管 repo 本地项目记忆
+- 开源核心 + 付费团队版
+- AI 编程课程 / 训练营
+- 企业或团队流程顾问服务
+- 私有部署和定制集成
+- 行业模板包和交付文档包
+- 与 Hermes 数字员工方案组合销售
+
+## 8. 竞争优势
+
+- 不绑单一模型：Codex、Claude、Hermes、Cursor、Copilot 都能接入
+- 不绑单一编辑器：CLI 是底座，编辑器只是入口
+- 本地优先：项目状态留在用户仓库里
+- 轻量：不用先搭一套大平台
+- 适合中国用户的真实交付场景：课程、外包、顾问、小团队
+- 与 Hermes 互补：Hermes 记住用户和跨项目经验，Autorunne 记住单个 repo 的项目状态
 
 ## 9. 当前阶段判断
-当前已经具备：
-- state-first CLI 主路径
-- 旧 `.autorunne/*.md` 到 state workspace 的迁移能力
-- 可安装包构建、GitHub Release 与 PyPI 发布链路
-- 显式 task 操作、状态观测与 doctor 检查
-- direct agent 工作流说明
-- 0.6.13 多包项目识别与 sync 渲染修复，能支撑真实 frontend/backend/contracts 项目演示
-- 0.6.14/0.6.16 轻量 Python demo 识别与全 agent 入口补齐，能支撑课程开发项目演示
-- 初步对外说明文档、产品说明书、中文操作手册、商业稳定性说明
 
-当前更准确的阶段是：
-### **可在真实项目里持续使用、可做对外演示和早期成交的商业验证版 Beta 产品**
-还不是最终成熟企业版，但 GitHub Release、PyPI、服务器本机运行环境和真实课程开发 demo 都已验证，已经适合进入“教学 + 交付 + 顾问服务”组合验证。
+Autorunne 现在处于“可商用验证的开源 Beta”阶段。
 
-## 10. 接下来的关键里程碑
-### M1：真实项目连续跑状态工作流
-- 用 `open → sync → ingest/start → finish → show/history/trace` 连续跑多个真实项目
-- 优先覆盖 AI 教学、全栈开发、frontend/backend/contracts 项目
-- 验证恢复体验、多模型协作体验、legacy migration 体验
+已经具备：
 
-### M2：产品化补强
-- JSON 输出模式
-- 更复杂 monorepo 的包关系图谱
-- 更强的 release / changelog / publish 自动化
-- 更顺的团队协作接入
+- GitHub 开源展示基础
+- PyPI 安装链路
+- 真实项目 smoke test
+- 多 agent 入口说明
+- 基础商业介绍材料
 
-### M3：商业化包装
-- 官网 / 演示视频 / 对外宣传页
-- 标准版产品说明书
-- 成交页 / 商业介绍 / 行业方案
-- 课程 / 咨询 / 交付流程服务包
+还需要继续加强：
 
-## 11. 一句话商业结论
-Autorunne 最有机会成为：
+- 更好的 JSON 输出和脚本化接入
+- 更复杂 monorepo 支持
+- 团队协作视图
+- 商业版功能边界
+- 官网、演示视频、案例库
 
-> **AI 时代的软件项目“持续开发操作层”**
+## 10. 近期路线
 
-不是替代模型，而是让不同模型真正能接力把项目做完。
+### M1：开源项目站稳
+
+- README、使用手册、宣传材料统一
+- GitHub Topics、Release、Issue 模板补齐
+- 准备 1-2 个公开 demo 项目
+
+### M2：真实用户验证
+
+- 在 AI 编程课程和真实交付项目中连续使用
+- 收集最常见的断点：安装、接入、恢复、验证、收尾
+- 把成功流程沉淀成模板
+
+### M3：商业包
+
+- 课程版：教学项目 + 操作手册 + 练习任务
+- 顾问版：客户接入清单 + 交付模板
+- 团队版：多项目状态和协作视图
+
+## 11. 商业结论
+
+Autorunne 不应该包装成“万能 AI 自动开发平台”。它更有价值的位置是：
+
+> AI 时代的软件项目持续开发操作层。
+
+当越来越多团队同时使用多个 coding agent 时，谁来保存项目状态、任务、验证和下一步，会变成一个刚需。Autorunne 就切这个位置。
+
+## 阶段性商业组合
+
+当前最适合先跑“教学 + 交付 + 顾问服务”组合验证：课程负责获客和教育，交付负责产生真实案例，顾问服务负责把流程卖给团队。

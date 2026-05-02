@@ -1,106 +1,131 @@
 # Autorunne 产品说明书
 
-## 一句话定义
-Autorunne 是一个 **本地优先的 AI 项目记忆与开发工作流层**，把任意 Git 仓库变成可持续推进、可恢复上下文、可多模型共享的开发工作区。
+## 1. 产品定义
 
-## 核心价值
-- 让 Claude Code、Codex、Hermes、Cursor、Copilot 等代理共享同一套 repo-local 项目记忆
-- 把开发过程中的上下文、任务、决策、下一步动作落到 `.autorunne/`
-- 保持正式发布版本干净，不把内部工作流文件混进交付物
-- 让“今天做一半、明天继续、换模型继续、换人继续”真正可行
-- 0.6.13 起能稳定识别 frontend/backend/contracts 这类多包 Node/TypeScript 项目，不再因为根目录缺少 package.json 而回退 generic
-- 0.6.14/0.6.16 起补齐轻量 Python 教学项目识别，并让 Codex、Claude、Hermes、Cursor、Copilot 的 repo 入口都自动回到同一套 Autorunne 工作流
+Autorunne 是一个本地优先的 AI 开发工作流层。它把任意 Git 仓库整理成一个可恢复、可交接、可被多个 coding agent 共同使用的开发工作区。
 
-## 适用对象
-- 独立开发者
-- AI 编程工作流重度用户
-- 同时使用多个 coding agent 的团队
-- 需要接手老项目 / 半成品项目的人
-- 需要把开发态和交付态严格分开的服务商
+一句话说：
 
-## 产品结构
-### 1. CLI 命令
-- `autorunne init`
-- `autorunne adopt`
-- `autorunne open`
-- `autorunne migrate`
-- `autorunne start`
-- `autorunne checkpoint`
-- `autorunne finish`
-- `autorunne record`
-- `autorunne task add / done / remove`
-- `autorunne status`
-- `autorunne show / history / trace / render`
-- `autorunne doctor`
-- `autorunne export`
-- `autorunne release`
-- `autorunne hooks`
-- `autorunne vscode`
-- `autorunne completion`
+> Hermes、Codex、Claude Code、Cursor、Copilot 负责干活；Autorunne 负责让项目不断档。
 
-### 2. 项目本地目录
+## 2. 用户真正遇到的问题
+
+现在很多人已经会用 AI 写代码，但项目做久了会遇到更实际的问题：
+
+- 过一天再打开，忘了上次做到哪里
+- 一个模型做过的事，另一个模型不知道
+- 新窗口需要重新解释项目背景
+- 任务完成后没有验证记录
+- 下一步只在聊天里说过，仓库里没有留下来
+- 客户项目和课程项目需要交接，但资料散在各处
+
+Autorunne 的价值不是“让 AI 多写一段代码”，而是让项目能够持续推进。
+
+## 3. 核心功能
+
+### repo-local 项目记忆
+
+Autorunne 在仓库内维护 `.autorunne/`：
+
 ```text
 .autorunne/
-├── state/
-│   ├── current.json
-│   ├── events.jsonl
-│   ├── tasks.json
-│   ├── decisions.json
-│   └── sessions.json
-├── views/
-│   ├── PROJECT_CONTEXT.md
-│   ├── TASKS.md
-│   ├── DECISIONS.md
-│   ├── SESSION_LOG.md
-│   ├── RULES.md
-│   ├── NEXT_ACTION.md
-│   ├── COMMANDS.md
-│   └── START_HERE.md
-├── bin/
-└── snapshots/
+├── state/   # 机器可读状态
+├── views/   # 人和 agent 都能读的 Markdown
+└── bin/     # 可选 wrapper
 ```
 
-### 3. 多模型共享层
-- Hermes：聊天入口 / 执行入口
-- Claude Code：高质量工程实现
-- Codex：快速编码与验证
-- Cursor：编辑器入口
+主要记录：项目背景、任务、决策、命令、会话、验证结果、下一步。
 
-## 典型工作流
-1. 在项目里运行 `autorunne open --with-vscode`（新仓库也可以 `autorunne init`）
-2. 如果仓库里已有旧 `.autorunne/*.md`，先执行 `autorunne migrate`
-3. 让任意 coding agent 先读取 `.autorunne/views/START_HERE.md`
-4. 开发过程中持续执行 `autorunne start / checkpoint / finish / record`
-5. 需要显式维护 backlog 时使用 `autorunne task add / done / remove`
-6. 需要正式交付时执行 `autorunne export` 或 `autorunne release`
+### 多 agent 共享同一套入口
+
+支持 Codex、Claude Code、Hermes、Cursor、GitHub Copilot、Gemini 等入口。不同工具不需要各自保存一套上下文，进入项目后都先读 `.autorunne/views/START_HERE.md`。
+
+### 任务闭环
+
+支持清晰的开发节奏：
+
+```text
+open / sync → ingest / start → checkpoint → finish / validate
+```
+
+这套节奏让任务不是“聊完就散”，而是能留下项目记录。
+
+### 项目扫描和命令派生
+
+Autorunne 会识别常见项目结构，并生成推荐命令：
+
+- Node / TypeScript / 前端项目
+- frontend/backend/contracts 多包项目
+- Python / FastAPI / Django / Flask / Streamlit
+- 轻量 Python 教学 demo，如 `app.py` + `tests/`
+- Go、Rust、C、C++、CMake
+
+### 状态可读
+
+0.6.16 起，`autorunne status` 和 `.autorunne/views/STATUS.md` 会给出更适合人看的项目状态：当前是否可继续、上次验证怎样、下一步是什么。
+
+## 4. 典型用户
+
+- 独立开发者：多个 AI 工具配合做项目
+- AI 编程课程讲师：让学员学会持续推进项目
+- 外包和顾问服务：把每轮开发、验证、交接记录清楚
+- 小团队：不想引入重型平台，但需要项目记忆
+- 开源维护者：让贡献者更快理解项目当前状态
+
+## 5. 使用方式
+
+安装：
+
+```bash
+pipx install autorunne
+```
+
+接入项目：
+
+```bash
+cd your-project
+autorunne open --with-vscode
+```
+
+日常任务：
+
+```bash
+autorunne ingest --source codex --task "修复订单筛选" --next "先补测试"
+# agent 开发并运行验证
+autorunne finish --summary "订单筛选修复完成" --validate "pytest -q" --next "整理发布说明"
+```
 
 ## 当前版本定位：0.6.16
-当前版本已经属于 **可在真实项目里持续使用、对外演示、早期商业交付验证的 Beta 产品**：
-- 已有 state-first CLI 主路径
-- 已支持 legacy markdown workspace 迁移
-- 已支持显式 task 操作与状态观测命令
-- 已支持 direct agent 模式：用户直接在 Hermes / Codex / Claude Code / Cursor 里发任务，Autorunne 在后台维护项目状态
-- 已支持常见 frontend/backend/contracts 多包项目识别、命令派生和视图渲染
-- 已支持轻量 Python 教学/demo 项目识别：`python app.py`、`python -m pytest -q` 可自动写入 handoff 文档
-- 已能通过 GitHub Release 与 PyPI 发布，可用 `pipx install/upgrade autorunne` 安装升级
-- 0.6.16 已完成 GitHub Release、PyPI、Hermes 服务器 venv、真实课程开发项目 smoke test 四层验证
+
+## 6. 当前版本定位
+
+当前公开版本：**0.6.16**。
+
+这个版本已经适合：
+
+- 公开 GitHub 展示
+- AI 编程课程演示
+- 个人真实项目使用
+- 顾问交付流程验证
+- 早期客户试用
+
+它还不是最终企业版平台。更准确的定位是：可持续使用的 Beta 工作流层。
+
+## 7. 边界
+
+现在不承诺：
+
+- 自动替代完整研发管理
+- 覆盖所有语言和所有复杂 monorepo
+- 不经人工验证就自动发布业务系统
+- 自动理解所有团队内部流程
+
+Autorunne 的产品路线会保持轻量：先把 repo-local 记忆、交接、验证、收尾做好，再逐步补团队协作、可视化和商业版能力。
+
+## 8. 产品结论
+
+Autorunne 最适合成为 AI 时代的软件项目“持续开发操作层”。它不替代模型，而是让不同模型、不同会话、不同人能围绕同一个仓库连续工作。
 
 ## 商业稳定性结论
-0.6.16 可以作为早期商业演示和教学/交付工作流的稳定版本使用，适合用来证明：
-- 用户只给 agent 分配任务，不需要每次提醒“先读 Autorunne”；
-- repo-local 项目记忆能跨 Codex / Claude Code / Hermes / Cursor / Copilot 复用；
-- GitHub Release + PyPI 安装链路已经跑通；
-- 真实课程开发 demo 已验证 open/sync/start/test/finish 闭环。
 
-对外表述应保持克制：它是可商用验证的 Beta 工作流层，不要包装成“完全自动替代开发者”的企业成熟平台。
-
-## 当前边界
-还未完成：
-- JSON 输出模式与更深的脚本化接入
-- 更强的 release / changelog / publish 自动化
-- 更复杂 monorepo 的依赖图谱和跨包任务关系
-- 更细的商业版功能分层
-
-## 推荐使用场景
-- 先在自己的真实项目中连续使用 1~2 周
-- 再把沉淀下来的最佳实践做成对外版本
+0.6.16 是可商用验证的 Beta 工作流层，适合教学 + 交付 + 顾问服务里的早期验证。

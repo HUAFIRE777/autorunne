@@ -1,103 +1,128 @@
 # Autorunne 对外定位与销售话术
 
 ## 对外定位
-Autorunne 是一个 **本地优先、轻量但可持续交接的 AI 项目记忆与开发工作流内核**。
 
-它不是单纯聊天，不是重型 AI IDE，也不是一堆华而不实的自动化。
+Autorunne 是一个本地优先的 AI 项目记忆与开发工作流内核。它把项目状态放回 Git 仓库，让 Codex、Claude Code、Hermes、Cursor、Copilot 这些工具能接着同一个项目往下做。
 
-它真正解决的是：
+通俗一点说：
 
-> 当你已经在用 Claude Code、Codex、Gemini、Hermes、Cursor、GitHub Copilot 这类 coding agent 开发时，怎样让项目状态、任务推进、决策记录和收尾动作持续接得上。
+> Autorunne 是放在仓库里的项目交接本。agent 来之前先看，做完以后再把结果写回去。
 
-## 核心卖点
-### 1. 不怕断档
-今天做到一半，明天继续；
-Claude 做一半，Codex 接着做；
-一个窗口关掉，另一个窗口打开，项目状态仍然在仓库里。
+## 最好讲清楚的价值
 
-### 2. 不绑死单一工具
-Autorunne 不依赖某个单一编辑器或单一模型，项目记忆就在本地仓库里。
+### 1. 不怕换窗口
 
-### 3. 真正是“状态工作流”，不是散装提示词
-现在 `.autorunne/state/*` 是唯一事实源，`status/show/history/trace` 能直接读状态，`migrate` 能接住旧项目，`task add/done/remove` 能显式维护 backlog。
+今天的聊天窗口关了，明天新开一个 agent，只要它能读 `.autorunne/views/START_HERE.md`，就能知道项目该从哪里继续。
 
-### 4. start → checkpoint → finish 闭环清楚
-不是只会“写代码”，而是把：
-- 任务开始
-- 中途进展
-- 最终收尾
-- 下一步
-- 验证结果
+### 2. 不怕换模型
 
-都落到本地工作流里。
+Claude Code、Codex、Hermes、Cursor、Copilot 不需要各记各的。项目状态在仓库里，谁来都看同一份。
 
-### 5. 开发态和交付态分离
-内部 AI 工作流文件不会直接污染正式交付版本。
+### 3. 不只记录“做了什么”，还记录“下一步”
 
-### 6. 0.6.16 更适合真实项目演示
-frontend/backend/contracts 这类多包项目不会再因为根目录没有 `package.json` 被误判成 generic；轻量 Python 教学/demo 项目也能识别 `python app.py`、`python -m pytest -q`。Codex、Claude、Hermes、Cursor、Copilot 的 repo 入口都会指向同一套 Autorunne workflow。
+任务、决策、验证命令、下一步都会留下来。项目不是靠人脑和聊天记录硬撑。
 
-### 7. 安装和发布链路已经跑通
-0.6.16 已发布到 GitHub Release 和 PyPI，可以用 `pipx install autorunne` 安装，用 `pipx upgrade autorunne --pip-args '--no-cache-dir -i https://pypi.org/simple'` 升级。
+### 4. 适合真实交付
 
-### 8. 真正适合接项目
-对外包、定制开发、AI 协作开发都更实用，因为它强调的是“把项目持续做完”。
+外包、课程、开源项目、小团队协作，都需要能复盘、能交接、能继续的项目状态。
 
-## 一句话介绍模板
-### 短版
-Autorunne 是一个让 Claude Code、Codex、Hermes、Cursor、Copilot 等 coding agent 持续接力做项目的 repo-local 工作流内核。
+## 一句话版本
 
-### 中版
-Autorunne 把任意 Git 仓库变成 AI-ready 的持续开发工作区，让多个 coding agent 共享项目记忆、任务状态、检查点和收尾流程，真正能接力把项目做完。
+### 10 秒版
+
+Autorunne 给 Git 仓库加项目记忆，让多个 coding agent 能接力开发。
+
+### 30 秒版
+
+Autorunne 把项目上下文、任务、决策、推荐命令、验证结果和下一步放进仓库。你继续用 Codex、Claude Code、Hermes、Cursor 或 Copilot 写代码，但项目不会因为换窗口、换模型、隔天继续就断掉。
 
 ### 成交版
-如果你已经在用 AI 写代码，你很快会发现：模型会写，但项目不会自己连续推进。Autorunne 解决的就是这个问题——它把项目上下文、任务、决策、检查点、收尾动作沉淀到本地工作区，让 Claude Code、Codex、Hermes、Cursor、Copilot 这类工具都能基于同一套项目状态继续干活，而不是每次重新开始。
+
+现在 AI 会写代码，但真实项目最难的是连续推进。Autorunne 解决的是“接得上”的问题：任务怎么开始，中途做了什么，哪些决定已经确认，测试有没有跑，下一步是什么，都留在 Git 仓库里。这样不管你用哪个 coding agent，都能围绕同一个项目状态继续做。
 
 ## 适合谁
+
 - 独立开发者
 - 接项目的人
-- 有多个 AI 编程工具的人
-- 想把 AI 编码流程标准化的人
-- 想做 AI 开发交付服务的人
+- AI 编程课程讲师
+- 同时使用多个 coding agent 的人
+- 想把 AI 开发流程标准化的小团队
 
 ## 不适合谁
-- 只想偶尔问几句代码问题的人
-- 想找一个全自动取代开发流程的平台的人
-- 不关心项目交接、恢复、收尾的人
 
-## 销售话术示例
-### 话术 1
-你不是缺一个更会聊天的 AI，你缺的是一个能让多个 coding agent 真正接力做项目的工作流内核。
+- 只偶尔问几句代码的人
+- 期待完全无人值守自动开发的人
+- 不愿意运行测试、不关心交付质量的人
+- 不使用 Git 项目的人
 
-### 话术 2
-Autorunne 的价值不在“写第一段代码”，而在“让项目第 20 次、第 50 次迭代还能接得上”。
+## 可直接使用的话术
 
-### 话术 3
-Claude Code、Codex、Hermes、Cursor 很适合做实现，但真正把它们串起来、让项目不断档的，是 Autorunne 这层 repo-local 项目记忆。
+1. 你不是缺一个更会聊天的 AI，你缺的是一个能让项目不断档的工作流层。
 
-### 话术 4
-如果你已经在用 AI 开发，Autorunne 不是替代你现有工具，而是把你现有工具变得更能交接、更能恢复、更能持续推进。
+2. 模型负责写代码，Autorunne 负责让项目记得住、接得上、收得住。
+
+3. 很多 AI 工具解决“写第一版”，Autorunne 解决“第 20 次迭代还能继续”。
+
+4. 它不是替代 Codex 或 Claude Code，而是让这些工具在同一个仓库里协作。
+
+5. 如果你做客户项目，Autorunne 的价值在于每轮工作都有任务、验证、决策和下一步，不是散在聊天记录里。
 
 ## 对外避免的说法
-- 避免说成“聊天机器人”
-- 避免说成“全自动 AI IDE”
-- 避免过度强调抽象 AI 概念
-- 避免只说成 VS Code 插件
-- 避免只说成 prompt 模板
-
-## 商业稳定性说法
-可以说：
-- “0.6.16 已完成 GitHub Release、PyPI、服务器环境、真实课程 demo 的基础验证。”
-- “适合做教学演示、交付流程标准化和早期客户验证。”
-- “目前定位是可商用验证的 Beta 工作流层，不是最终企业版平台。”
 
 不要说：
-- “完全自动替代开发者。”
-- “所有项目类型都已经成熟覆盖。”
-- “无需任何验证就能自动发布业务系统。”
 
-## 推荐对外表述
-- 本地优先 AI 开发工作流内核
-- 多模型共享项目记忆层
-- 适合真实开发交付的 AI 工作区
-- 面向 Claude Code / Codex / Hermes / Cursor / Copilot 的 repo-local workflow layer
+- 全自动替代开发者
+- 不需要测试也能交付
+- 所有项目都已经完美覆盖
+- 企业级成熟平台
+- 又一个 AI 聊天机器人
+
+可以说：
+
+- 本地优先 AI 开发工作流层
+- Git 仓库里的项目记忆
+- 多 coding agent 共享的项目交接本
+- 适合真实项目持续推进的开源工具
+
+## 商业稳定性说法
+
+稳妥说法：
+
+- 0.6.16 已完成 GitHub Release 和 PyPI 发布
+- 已在真实课程开发 demo 中跑通接入、开发、验证、收尾
+- 适合公开演示、教学、顾问交付流程和早期客户验证
+- 当前定位是可持续使用的 Beta 工作流层
+
+不要包装成最终企业版。真实一点，用户反而更容易信。
+
+## 对外短文案
+
+### GitHub / 社群
+
+Autorunne 开源了：一个给 Git 仓库加项目记忆的本地优先工作流工具。
+
+它让 Codex、Claude Code、Hermes、Cursor、Copilot 这类 coding agent 能围绕同一份项目状态接力开发。任务、决策、推荐命令、验证结果和下一步都留在仓库里，不再散在聊天窗口里。
+
+适合独立开发、AI 编程课程、客户交付和开源项目维护。
+
+安装：
+
+```bash
+pipx install autorunne
+```
+
+GitHub：<https://github.com/keguihua/autorunne>
+
+### 朋友圈 / 私域
+
+我把 Autorunne 开源了。
+
+它解决的是 AI 编程里一个很实际的问题：模型会写代码，但项目容易断档。今天 Claude 做到一半，明天换 Codex，或者新开一个窗口，很多上下文就没了。
+
+Autorunne 会把项目背景、任务、决策、验证结果和下一步放回 Git 仓库。以后 agent 进项目先看同一份交接本，就能接着做。
+
+不是全自动替代开发者，而是让 AI 开发更像一个能持续推进的项目流程。
+
+## 0.6.16 更适合真实项目演示
+
+这一版补齐了可读 STATUS、PyPI 安装、GitHub Release 和多 agent 入口说明，更适合拿真实项目做公开演示。
