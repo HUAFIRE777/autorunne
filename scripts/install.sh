@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPO_URL="https://github.com/keguihua/autorunne.git"
-RELEASE_BASE_URL="https://github.com/keguihua/autorunne/releases/download"
+REPO_URL="https://github.com/HUAFIRE777/autorunne.git"
+RELEASE_BASE_URL="https://github.com/HUAFIRE777/autorunne/releases/download"
 AUTORUNNE_REF="${AUTORUNNE_GIT_REF:-main}"
 AUTORUNNE_INSTALL_SOURCE="${AUTORUNNE_INSTALL_SOURCE:-pypi}"
 AUTORUNNE_VERSION="${AUTORUNNE_VERSION:-}"

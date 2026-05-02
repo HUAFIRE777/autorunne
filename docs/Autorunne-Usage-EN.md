@@ -59,7 +59,7 @@ pipx install autorunne
 
 ### One-line installer
 ```bash
-curl -fsSL https://raw.githubusercontent.com/keguihua/autorunne/main/scripts/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/HUAFIRE777/autorunne/main/scripts/install.sh | bash
 ```
 
 After install, enter your repo and run:

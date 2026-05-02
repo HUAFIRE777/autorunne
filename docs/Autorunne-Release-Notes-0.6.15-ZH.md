@@ -50,7 +50,7 @@ AutoRunne 0.6.15
 
 0.6.15 已完成四层验证：
 
-1. GitHub Release：<https://github.com/keguihua/autorunne/releases/tag/v0.6.15>
+1. GitHub Release：<https://github.com/HUAFIRE777/autorunne/releases/tag/v0.6.15>
 2. PyPI：`autorunne==0.6.15`，包含 wheel 和 sdist
 3. Hermes 服务器运行环境：`autorunne --version` 显示 `AutoRunne 0.6.15`
 4. 真实课程开发项目 smoke test：

@@ -2,6 +2,16 @@
 
 All notable changes to Autorunne are documented here.
 
+## 0.6.17 - 2026-05-02
+
+### Changed
+- Updated GitHub project links from the old account to `HUAFIRE777/autorunne`.
+- Refreshed package metadata so PyPI points users to the current GitHub repository.
+
+### Verification
+- `python -m pytest -q`
+- package build metadata check
+
 ## 0.6.16 - 2026-04-28
 
 ### Added

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "autorunne"
-version = "0.6.16"
+version = "0.6.17"
 description = "Local-first agent development workspace that turns any repo into an Autorunne project."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -36,9 +36,9 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/keguihua/autorunne"
-Repository = "https://github.com/keguihua/autorunne"
-Issues = "https://github.com/keguihua/autorunne/issues"
+Homepage = "https://github.com/HUAFIRE777/autorunne"
+Repository = "https://github.com/HUAFIRE777/autorunne"
+Issues = "https://github.com/HUAFIRE777/autorunne/issues"
 
 [project.scripts]
 autorunne = "autorunne.cli:app"

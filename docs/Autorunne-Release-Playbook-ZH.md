@@ -76,7 +76,7 @@ git push origin v0.6.13
 1. 合并到 `main`
 2. 确认 `main` 分支安装命令可用：
 ```bash
-curl -fsSL https://raw.githubusercontent.com/keguihua/autorunne/main/scripts/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/HUAFIRE777/autorunne/main/scripts/install.sh | bash
 ```
 3. 再决定是否打 tag 发 release
 
