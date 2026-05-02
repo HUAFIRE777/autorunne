@@ -35,7 +35,7 @@ python -m pipx ensurepath
 也可以用一键脚本：
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/keguihua/autorunne/main/scripts/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/HUAFIRE777/autorunne/main/scripts/install.sh | bash
 ```
 
 查看是否安装成功：
@@ -157,7 +157,7 @@ autorunne doctor
 如果你要在 GitHub README、课程或视频里演示，建议用这个流程：
 
 ```bash
-git clone https://github.com/keguihua/autorunne.git
+git clone https://github.com/HUAFIRE777/autorunne.git
 cd autorunne
 pipx install autorunne
 
