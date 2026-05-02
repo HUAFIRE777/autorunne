@@ -28,7 +28,7 @@ curl -fsSL https://raw.githubusercontent.com/HUAFIRE777/autorunne/main/scripts/i
 autorunne --version
 ```
 
-当前公开版本是 0.6.16。
+当前公开版本是 0.6.17。
 
 ## 3. 给一个仓库接入
 
@@ -236,7 +236,7 @@ cd contracts && npm run compile
 也就是说，`sync` 不应该再把项目误判成 generic。发布前可以用：
 
 ```bash
-autorunne release --version 0.6.16
+autorunne release --version 0.6.17
 ```
 
 来整理版本材料和发布检查。

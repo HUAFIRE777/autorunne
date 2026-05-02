@@ -2,6 +2,12 @@
 
 All notable changes to Autorunne are documented here.
 
+## 0.6.17 - 2026-05-02
+
+- Published a fresh PyPI release so the package metadata now points to the new GitHub home: `HUAFIRE777/autorunne`.
+- Updated public README, usage guide, open-source manual, promotion copy, product brief, business plan, and commercial stability notes to use `0.6.17`.
+- Kept the release focused on public distribution and upgrade clarity: existing users can run `pipx upgrade autorunne --pip-args="--no-cache-dir -i https://pypi.org/simple"`.
+
 ## 0.6.16 - 2026-04-28
 
 ### Added

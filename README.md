@@ -41,7 +41,7 @@ pipx install autorunne
 curl -fsSL https://raw.githubusercontent.com/HUAFIRE777/autorunne/main/scripts/install.sh | bash
 ```
 
-当前公开版本：**0.6.16**
+当前公开版本：**0.6.17**
 
 ## 30 秒上手
 
@@ -149,14 +149,14 @@ autorunne doctor
 6. [商业计划书](docs/Autorunne-商业计划书-ZH.md)
 7. [对外定位与销售话术](docs/Autorunne-对外定位与销售话术-ZH.md)
 8. [商业稳定性说明](docs/Autorunne-商业稳定性说明-ZH.md)
-9. [0.6.16 链接同步发布说明](docs/Autorunne-Release-Notes-0.6.16-ZH.md)
+9. [0.6.17 PyPI/GitHub 同步发布说明](docs/Autorunne-Release-Notes-0.6.17-ZH.md)
 10. [0.6.16 状态可视化发布说明](docs/Autorunne-Release-Notes-0.6.16-ZH.md)
 11. [与大模型开发对接说明](docs/Autorunne-LLM-Integration-ZH.md)
 12. [English usage guide](docs/Autorunne-Usage-EN.md)
 
 ## 当前阶段
 
-0.6.16 已完成 GitHub Release、PyPI、服务器运行环境和真实课程 demo 的基础验证。它适合做公开演示、课程教学、个人项目和早期客户交付流程验证。
+0.6.17 已完成 GitHub Release、PyPI、服务器运行环境和真实课程 demo 的基础验证。它适合做公开演示、课程教学、个人项目和早期客户交付流程验证。
 
 更准确地说：Autorunne 现在是一个可持续使用的 Beta 工作流层。它不是最终企业平台，但已经足够支撑真实项目里的“接着做”。
 
