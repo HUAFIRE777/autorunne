@@ -3,13 +3,23 @@
 [![CI](https://github.com/HUAFIRE777/autorunne/actions/workflows/ci.yml/badge.svg)](https://github.com/HUAFIRE777/autorunne/actions/workflows/ci.yml)
 [![Release Packages](https://github.com/HUAFIRE777/autorunne/actions/workflows/release.yml/badge.svg)](https://github.com/HUAFIRE777/autorunne/actions/workflows/release.yml)
 
-**Autorunne 给 Git 仓库加一层本地项目记忆，让 Codex、Claude Code、Hermes、Cursor、GitHub Copilot 能接着同一个项目往下做。**
+**Autorunne 是一个 repo-local 项目记忆和交接层：让 Codex、Claude Code、Hermes、Cursor、GitHub Copilot 在同一个 Git 仓库里接着做，而不是每次从零解释。**
 
 很多人已经在用 AI 写代码，但真实项目最麻烦的不是“让模型写一段代码”，而是：今天做到一半，明天还能不能接上；换一个模型，能不能知道上次做了什么；交付前，能不能看清任务、决策、验证结果和下一步。
 
 Autorunne 解决的是这个问题。
 
-它会在项目里维护一个 `.autorunne/` 工作区，把项目上下文、任务、决策、会话记录、推荐命令和下一步整理成稳定文件。你仍然用自己熟悉的工具写代码，Autorunne 只负责把项目状态留在仓库本地。
+它会在项目里维护一个 `.autorunne/` 工作区，把项目上下文、任务、决策、会话记录、推荐命令、验证证据和下一步整理成稳定文件。你仍然用自己熟悉的工具写代码，Autorunne 只负责把项目状态留在仓库本地。
+
+## 0.6.18 重点
+
+这一版来自真实开发过程中的交接痛点：
+
+- `finish --validate` 会把验证状态从“未记录”变成“通过/失败”。
+- `STATUS.md`、`START_HERE.md` 和 `autorunne status` 会直接显示验证命令和时间，例如 `cd frontend && npm run build`。
+- `NEXT_ACTION.md` 拆成 `Next product task` 和 `Workflow follow-up`，避免流程改进任务覆盖真正的产品开发下一步。
+
+简单说：Autorunne 不只记录“做了什么”，还记录“怎么证明做完了，以及下一步到底是产品任务还是流程跟进”。
 
 ## 适合谁
 
