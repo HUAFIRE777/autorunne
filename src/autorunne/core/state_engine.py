@@ -144,6 +144,36 @@ def _archive_stale_release_backlog(state: dict[str, Any], *, timestamp: str, sou
     return archived_texts
 
 
+def _is_workflow_follow_up_text(text: str) -> bool:
+    lowered = text.strip().lower()
+    workflow_terms = (
+        "workflow",
+        "autorunne",
+        "status.md",
+        "start_here.md",
+        "next_action",
+        "render",
+        "renderer",
+        "validation evidence",
+        "流程",
+        "状态视图",
+        "验证证据",
+    )
+    return any(term in lowered for term in workflow_terms)
+
+
+def _set_next_slots(current: dict[str, Any], next_action: str, *, prefer_product: bool) -> None:
+    clean_next = next_action.strip()
+    existing_product = (current.get("next_product_task") or current.get("next_action") or "").strip()
+    if clean_next and (not prefer_product) and _is_workflow_follow_up_text(clean_next):
+        current["workflow_follow_up"] = clean_next
+        current["next_product_task"] = existing_product or "确认下一个产品开发任务"
+    else:
+        current["next_product_task"] = clean_next
+        current.setdefault("workflow_follow_up", "无")
+    current["next_action"] = clean_next
+
+
 def _git_output(repo_root: Path, *args: str) -> str:
     result = subprocess.run(["git", *args], cwd=repo_root, capture_output=True, text=True)
     if result.returncode != 0:
@@ -220,6 +250,8 @@ def _seed_state(repo_root: Path, scan: dict[str, Any], action: str) -> dict[str,
         "project_phase": scan["project_phase"],
         "resume_hint": scan["resume_hint"],
         "next_action": scan["next_action"],
+        "next_product_task": scan["next_action"],
+        "workflow_follow_up": "无",
         "active_task": None,
         "created_at": timestamp,
         "updated_at": timestamp,
@@ -288,6 +320,8 @@ def _import_legacy_views(repo_root: Path, state: dict[str, Any]) -> dict[str, An
     next_lines = [line.strip() for line in next_action_text.splitlines() if line.strip() and not line.strip().startswith("#")]
     if next_lines:
         state["current"]["next_action"] = next_lines[-1]
+        state["current"]["next_product_task"] = next_lines[-1]
+        state["current"].setdefault("workflow_follow_up", "无")
         state["tasks"]["next_up"] = [_task_item(next_lines[-1], source="legacy-import")]
 
     tasks_text = _read_legacy_text(repo_root, "TASKS.md")
@@ -316,6 +350,7 @@ def _import_legacy_views(repo_root: Path, state: dict[str, Any]) -> dict[str, An
         if next_up:
             state["tasks"]["next_up"] = _dedupe_tasks(next_up)
             state["current"]["next_action"] = next_up[0]["text"]
+            state["current"]["next_product_task"] = next_up[0]["text"]
         if known_unknowns:
             state["tasks"]["known_unknowns"] = _dedupe_tasks(known_unknowns)
 
@@ -432,6 +467,8 @@ def render_from_state(repo_root: Path) -> dict[str, Any]:
 
 def _touch_current_from_scan(current: dict[str, Any], scan: dict[str, Any], *, action: str) -> None:
     preserved_next_action = current.get("next_action")
+    preserved_next_product_task = current.get("next_product_task") or preserved_next_action
+    preserved_workflow_follow_up = current.get("workflow_follow_up") or "无"
     if current.get("packages") and not scan.get("packages") and scan.get("stack") == ["generic"]:
         scan = {**scan}
         for key in ["stack", "framework", "package_manager", "important_files", "source_dirs", "commands", "packages"]:
@@ -453,6 +490,8 @@ def _touch_current_from_scan(current: dict[str, Any], scan: dict[str, Any], *, a
             "project_phase": scan["project_phase"],
             "resume_hint": scan["resume_hint"],
             "next_action": preserved_next_action or scan["next_action"],
+            "next_product_task": preserved_next_product_task or scan["next_action"],
+            "workflow_follow_up": preserved_workflow_follow_up,
             "last_action": action,
             "updated_at": utc_now(),
         }
@@ -530,7 +569,7 @@ def start_task(repo_root: Path, task: str, next_action: str) -> dict[str, Any]:
     timestamp = utc_now()
     previous_next_action = state["current"].get("next_action")
     state["current"]["active_task"] = task.strip()
-    state["current"]["next_action"] = next_action.strip()
+    _set_next_slots(state["current"], next_action, prefer_product=True)
     state["current"]["last_action"] = "task_started"
     state["current"]["updated_at"] = timestamp
     state["tasks"]["in_progress"] = _dedupe_tasks([_task_item(task, timestamp=timestamp, source="start"), *state["tasks"].get("in_progress", [])])
@@ -559,7 +598,7 @@ def record_checkpoint(
     state = load_workspace_state(repo_root)
     timestamp = utc_now()
     previous_next_action = state["current"].get("next_action")
-    state["current"]["next_action"] = next_action.strip()
+    _set_next_slots(state["current"], next_action, prefer_product=False)
     state["current"]["last_action"] = "checkpoint_recorded"
     state["current"]["updated_at"] = timestamp
     _realign_focus_sections(state, timestamp=timestamp, source="checkpoint")
@@ -626,7 +665,7 @@ def finish_task(
         source="finish",
         remove_texts=[completed_text, previous_next_action],
     )
-    state["current"]["next_action"] = next_action.strip()
+    _set_next_slots(state["current"], next_action, prefer_product=False)
     state["current"]["last_action"] = "task_finished"
     state["current"]["updated_at"] = timestamp
     lines = [

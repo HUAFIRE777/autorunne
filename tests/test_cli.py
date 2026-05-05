@@ -403,6 +403,63 @@ def test_status_view_renders_user_readable_workflow_snapshot(python_repo: Path):
         assert "open/sync → start/ingest → checkpoint → finish/validate" in text
 
 
+def test_status_view_renders_validation_command_and_time(python_repo: Path):
+    _run_in(python_repo, ["adopt"])
+    result = _run_in(
+        python_repo,
+        [
+            "finish",
+            "--summary",
+            "Build proof captured",
+            "--validate",
+            "python -m pytest -q",
+            "--next",
+            "开发下一个产品功能",
+        ],
+    )
+    assert result.exit_code == 0
+
+    status_view = (python_repo / ".autorunne" / "views" / "STATUS.md").read_text(encoding="utf-8")
+    start_here = (python_repo / ".autorunne" / "views" / "START_HERE.md").read_text(encoding="utf-8")
+    status_result = _run_in(python_repo, ["status"])
+
+    for text in (status_view, start_here, status_result.stdout):
+        assert "上次验证：通过" in text
+        assert "验证命令：`python -m pytest -q`" in text
+        assert "验证时间：" in text
+
+
+def test_next_action_view_splits_product_task_from_workflow_follow_up(python_repo: Path):
+    _run_in(python_repo, ["adopt"])
+    _run_in(python_repo, ["start", "--task", "Build checkout page", "--next", "开发支付回调页面"])
+    finish = _run_in(
+        python_repo,
+        [
+            "finish",
+            "--summary",
+            "Workflow renderer improved",
+            "--validate",
+            "python -m pytest -q",
+            "--next",
+            "Workflow follow-up: 把验证证据渲染到 STATUS.md",
+        ],
+    )
+    assert finish.exit_code == 0
+
+    current = json.loads((python_repo / ".autorunne" / "state" / "current.json").read_text(encoding="utf-8"))
+    next_view = (python_repo / ".autorunne" / "views" / "NEXT_ACTION.md").read_text(encoding="utf-8")
+    status_view = (python_repo / ".autorunne" / "views" / "STATUS.md").read_text(encoding="utf-8")
+
+    assert current["next_product_task"] == "开发支付回调页面"
+    assert current["workflow_follow_up"] == "Workflow follow-up: 把验证证据渲染到 STATUS.md"
+    assert "## Next product task" in next_view
+    assert "开发支付回调页面" in next_view
+    assert "## Workflow follow-up" in next_view
+    assert "Workflow follow-up: 把验证证据渲染到 STATUS.md" in next_view
+    assert "Next product task：开发支付回调页面" in status_view
+    assert "Workflow follow-up：Workflow follow-up: 把验证证据渲染到 STATUS.md" in status_view
+
+
 def test_sync_appends_summary_and_updates_next_action(python_repo: Path):
     _run_in(python_repo, ["adopt"])
     initial_log = (python_repo / ".autorunne" / "SESSION_LOG.md").read_text(encoding="utf-8")

@@ -168,7 +168,7 @@ autorunne status
 
 ## 9. 当前版本
 
-0.6.17 是可公开演示、可教学、可早期交付验证的 Beta 版本。它已经跑通 GitHub Release、PyPI、真实项目 smoke test 和多 agent 入口说明。
+0.6.18 是可公开演示、可教学、可早期交付验证的 Beta 版本。它已经跑通 GitHub Release、PyPI、真实项目 smoke test 和多 agent 入口说明。
 
 ## 10. 一句话总结
 
@@ -192,10 +192,10 @@ cd backend && npm test
 cd contracts && npm run compile
 ```
 
-发布包示例仍然保留：`autorunne-0.6.17-py3-none-any.whl`。发布整理命令：
+发布包示例仍然保留：`autorunne-0.6.18-py3-none-any.whl`。发布整理命令：
 
 ```bash
-autorunne release --version 0.6.17
+autorunne release --version 0.6.18
 ```
 
 ## 12. 0.6.14 轻量 Python 项目补充

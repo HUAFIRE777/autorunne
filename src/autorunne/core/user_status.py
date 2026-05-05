@@ -5,17 +5,28 @@ from typing import Any
 WORKFLOW_FLOW = "open/sync → start/ingest → checkpoint → finish/validate"
 
 
-def _latest_validation_status(sessions: dict[str, Any]) -> str:
+def _latest_validation(sessions: dict[str, Any]) -> dict[str, str]:
     for session in reversed(sessions.get("items", [])):
+        command = "未记录"
+        status = "未记录"
         for line in session.get("lines", []):
+            if line.startswith("Validation command:"):
+                command = line.split(":", 1)[1].strip() or "未记录"
             if line.startswith("Validation result:"):
                 raw = line.split(":", 1)[1].strip().lower()
                 if raw == "passed":
-                    return "通过"
-                if raw == "failed":
-                    return "失败"
-                return raw or "未记录"
-    return "未记录"
+                    status = "通过"
+                elif raw == "failed":
+                    status = "失败"
+                else:
+                    status = raw or "未记录"
+        if command != "未记录" or status != "未记录":
+            return {
+                "status": status,
+                "command": command,
+                "time": session.get("timestamp") or "未记录",
+            }
+    return {"status": "未记录", "command": "未记录", "time": "未记录"}
 
 
 def build_user_summary(state: dict[str, Any], *, missing: list[str] | None = None) -> dict[str, str]:
@@ -36,14 +47,21 @@ def build_user_summary(state: dict[str, Any], *, missing: list[str] | None = Non
         project_state = "已准备，可开始任务"
 
     context_entry = "已准备好" if not missing_files else f"缺少 {len(missing_files)} 个入口文件"
-    validation_status = _latest_validation_status(sessions)
+    validation = _latest_validation(sessions)
+    validation_status = validation["status"]
     next_action = current.get("next_action") or "确认下一个具体任务"
+    next_product_task = current.get("next_product_task") or next_action
+    workflow_follow_up = current.get("workflow_follow_up") or "无"
 
     return {
         "project_state": project_state,
         "validation_status": validation_status,
+        "validation_command": validation["command"],
+        "validation_time": validation["time"],
         "next_action": next_action,
+        "next_product_task": next_product_task,
+        "workflow_follow_up": workflow_follow_up,
         "context_entry": context_entry,
         "workflow_flow": WORKFLOW_FLOW,
-        "one_line": f"当前项目状态：{project_state}；上次验证：{validation_status}；下一步：{next_action}；上下文入口：{context_entry}",
+        "one_line": f"当前项目状态：{project_state}；上次验证：{validation_status}；验证命令：{validation['command']}；下一步产品任务：{next_product_task}；流程跟进：{workflow_follow_up}；上下文入口：{context_entry}",
     }

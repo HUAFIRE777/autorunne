@@ -512,6 +512,10 @@ def status(path: str | None = typer.Option(None, help="Target repository path"))
                 [
                     f"当前项目状态：{user_summary.get('project_state', '未知')}",
                     f"上次验证：{user_summary.get('validation_status', '未记录')}",
+                    f"验证命令：`{user_summary.get('validation_command', '未记录')}`",
+                    f"验证时间：{user_summary.get('validation_time', '未记录')}",
+                    f"Next product task：{user_summary.get('next_product_task', result['next_action'])}",
+                    f"Workflow follow-up：{user_summary.get('workflow_follow_up', '无')}",
                     f"下一步：{user_summary.get('next_action', result['next_action'])}",
                     f"上下文入口：{user_summary.get('context_entry', '未知')}",
                     f"记录流程：{user_summary.get('workflow_flow', 'open/sync → start/ingest → checkpoint → finish/validate')}",

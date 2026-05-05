@@ -175,6 +175,8 @@ def render_view_bundle(state: dict) -> dict[str, str]:
     decisions_md += "\n".join(recorded or ["- No durable decisions recorded yet"]) + "\n"
 
     user_summary = build_user_summary(state)
+    next_product_task = user_summary.get("next_product_task") or current.get("next_product_task") or current.get("next_action", "Confirm the next concrete step.")
+    workflow_follow_up = user_summary.get("workflow_follow_up") or current.get("workflow_follow_up") or "无"
 
     session_items = sessions.get('items', [])
     session_log = "# Session Log\n\n"
@@ -194,7 +196,17 @@ def render_view_bundle(state: dict) -> dict[str, str]:
 6. Keep `.autorunne/` local-only unless the user explicitly wants it tracked.
 """
 
-    next_action_md = f"# Next Action\n\n{current.get('next_action', 'Confirm the next concrete step.')}\n"
+    next_action_md = f"""# Next Action
+
+## Next product task
+{next_product_task}
+
+## Workflow follow-up
+{workflow_follow_up}
+
+## Legacy combined next action
+{current.get('next_action', 'Confirm the next concrete step.')}
+"""
 
     commands_md = f"""# Commands
 
@@ -218,6 +230,10 @@ Autorunne is the state layer for this repository, designed to work with Claude C
 ## User-readable status
 - 当前项目状态：{user_summary['project_state']}
 - 上次验证：{user_summary['validation_status']}
+- 验证命令：`{user_summary['validation_command']}`
+- 验证时间：{user_summary['validation_time']}
+- Next product task：{next_product_task}
+- Workflow follow-up：{workflow_follow_up}
 - 下一步：{user_summary['next_action']}
 - 上下文入口：{user_summary['context_entry']}
 - 记录流程：{user_summary['workflow_flow']}
@@ -262,6 +278,10 @@ Open Codex / Claude Code / Hermes directly in this repo and just give the task. 
 ## 当前安心感
 - 当前项目状态：{user_summary['project_state']}
 - 上次验证：{user_summary['validation_status']}
+- 验证命令：`{user_summary['validation_command']}`
+- 验证时间：{user_summary['validation_time']}
+- Next product task：{next_product_task}
+- Workflow follow-up：{workflow_follow_up}
 - 下一步：{user_summary['next_action']}
 - 上下文入口：{user_summary['context_entry']}
 

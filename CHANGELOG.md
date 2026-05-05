@@ -2,6 +2,18 @@
 
 All notable changes to Autorunne are documented here.
 
+## 0.6.18 - 2026-05-05
+
+### Improved
+- `STATUS.md`, `START_HERE.md`, and `autorunne status` now render validation evidence directly: status, command, and timestamp.
+- `.autorunne/views/NEXT_ACTION.md` now separates `Next product task` from `Workflow follow-up`, so Autorunne/process improvement tasks do not hide the user's next product-development task.
+- Workflow-looking next actions such as Autorunne/status/render/validation-evidence follow-ups are recorded in the workflow slot while preserving the prior product slot.
+
+### Verification
+- focused status/next-action regression tests
+- full local pytest suite
+- package build
+
 ## 0.6.17 - 2026-05-02
 
 - Published a fresh PyPI release so the package metadata now points to the new GitHub home: `HUAFIRE777/autorunne`.
