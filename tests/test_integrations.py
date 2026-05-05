@@ -4,6 +4,7 @@ from pathlib import Path
 
 from typer.testing import CliRunner
 
+from autorunne.core import integrations
 from autorunne.cli import app
 
 runner = CliRunner()
@@ -39,7 +40,7 @@ def test_integrate_repo_scope_installs_skills_and_wrappers(git_repo: Path):
     assert agents_skill.startswith("---\n")
     assert "name: autorunne-workflow" in agents_skill
     assert claude_skill.startswith("---\n")
-    assert "version: 0.6.18" in claude_skill
+    assert "version: 0.6.19" in claude_skill
     assert "open Codex directly" in agents_skill
     assert "autorunne ingest --source codex --task <task>" in agents_skill
     assert "load this repo skill" in agents_skill
@@ -66,6 +67,29 @@ def test_open_auto_installs_repo_integrations(node_repo: Path):
     assert (node_repo / ".autorunne" / "bin" / "ar-codex").exists()
     skill_text = (node_repo / ".agents" / "skills" / "autorunne-workflow" / "SKILL.md").read_text(encoding="utf-8")
     assert skill_text.startswith("---\n")
+
+
+def test_open_skips_existing_read_only_integrations_in_agent_sandbox(node_repo: Path, monkeypatch):
+    first = _run_in(node_repo, ["open"])
+    assert first.exit_code == 0
+    protected_skill = node_repo / ".agents" / "skills" / "autorunne-workflow" / "SKILL.md"
+    original_skill_text = protected_skill.read_text(encoding="utf-8")
+    real_write_text = integrations.write_text
+
+    def sandbox_write_text(path: Path, content: str) -> None:
+        if path == protected_skill:
+            raise OSError(30, "Read-only file system", str(path))
+        real_write_text(path, content)
+
+    monkeypatch.setattr(integrations, "write_text", sandbox_write_text)
+
+    resumed = _run_in(node_repo, ["open"])
+
+    assert resumed.exit_code == 0
+    assert "resumed" in resumed.stdout
+    assert protected_skill.read_text(encoding="utf-8") == original_skill_text
+    log_text = (node_repo / ".autorunne" / "SESSION_LOG.md").read_text(encoding="utf-8")
+    assert "integration updated" in log_text
 
 
 def test_open_renders_standard_library_python_commands(standard_library_python_repo: Path):

@@ -11,15 +11,15 @@ Autorunne 解决的是这个问题。
 
 它会在项目里维护一个 `.autorunne/` 工作区，把项目上下文、任务、决策、会话记录、推荐命令、验证证据和下一步整理成稳定文件。你仍然用自己熟悉的工具写代码，Autorunne 只负责把项目状态留在仓库本地。
 
-## 0.6.18 重点
+## 0.6.19 重点
 
-这一版来自真实开发过程中的交接痛点：
+这一版来自真实 Codex 课程项目 dogfood：
 
-- `finish --validate` 会把验证状态从“未记录”变成“通过/失败”。
-- `STATUS.md`、`START_HERE.md` 和 `autorunne status` 会直接显示验证命令和时间，例如 `cd frontend && npm run build`。
-- `NEXT_ACTION.md` 拆成 `Next product task` 和 `Workflow follow-up`，避免流程改进任务覆盖真正的产品开发下一步。
+- 已接入 Autorunne 的项目，可以直接打开 Codex / Claude Code / Hermes / Cursor / Copilot 分配任务。
+- agent 会读取 `.autorunne/views/START_HERE.md` 和 repo skill，然后在后台用 `autorunne ingest` / `checkpoint` / `finish` 记录任务状态。
+- 如果 Codex 沙盒不允许重写已经存在的隐藏集成文件，例如 `.agents/skills/autorunne-workflow/SKILL.md`，`autorunne open` 会安全跳过这个文件，而不是中断整个状态记录。
 
-简单说：Autorunne 不只记录“做了什么”，还记录“怎么证明做完了，以及下一步到底是产品任务还是流程跟进”。
+简单说：0.6.19 让“直接打开 agent，Autorunne 在后台生效”这条主路径更稳。0.6.18 的验证证据和 Next Action 拆分能力继续保留。
 
 ## 适合谁
 
@@ -51,7 +51,7 @@ pipx install autorunne
 curl -fsSL https://raw.githubusercontent.com/HUAFIRE777/autorunne/main/scripts/install.sh | bash
 ```
 
-当前公开版本：**0.6.18**
+当前公开版本：**0.6.19**
 
 ## 30 秒上手
 
@@ -159,14 +159,14 @@ autorunne doctor
 6. [商业计划书](docs/Autorunne-商业计划书-ZH.md)
 7. [对外定位与销售话术](docs/Autorunne-对外定位与销售话术-ZH.md)
 8. [商业稳定性说明](docs/Autorunne-商业稳定性说明-ZH.md)
-9. [0.6.18 PyPI/GitHub 同步发布说明](docs/Autorunne-Release-Notes-0.6.18-ZH.md)
+9. [0.6.19 PyPI/GitHub 同步发布说明](docs/Autorunne-Release-Notes-0.6.19-ZH.md)
 10. [0.6.16 状态可视化发布说明](docs/Autorunne-Release-Notes-0.6.16-ZH.md)
 11. [与大模型开发对接说明](docs/Autorunne-LLM-Integration-ZH.md)
 12. [English usage guide](docs/Autorunne-Usage-EN.md)
 
 ## 当前阶段
 
-0.6.18 已完成 GitHub Release、PyPI、服务器运行环境和真实课程 demo 的基础验证。它适合做公开演示、课程教学、个人项目和早期客户交付流程验证。
+0.6.19 已完成 GitHub Release、PyPI、服务器运行环境和真实课程 demo 的基础验证。它适合做公开演示、课程教学、个人项目和早期客户交付流程验证。
 
 更准确地说：Autorunne 现在是一个可持续使用的 Beta 工作流层。它不是最终企业平台，但已经足够支撑真实项目里的“接着做”。
 

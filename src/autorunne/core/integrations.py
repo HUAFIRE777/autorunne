@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import errno
 from pathlib import Path
 
 from autorunne.core.paths import ensure_dir, workflow_bin_dir, write_text
@@ -26,7 +27,7 @@ def _skill_text(tool: str) -> str:
     return f"""---
 name: autorunne-workflow
 description: Repo-local Autorunne workflow instructions for this repository
-version: 0.6.18
+version: 0.6.19
 ---
 
 # Autorunne Workflow Skill
@@ -213,38 +214,57 @@ def _target_roots(repo_root: Path, scope: str) -> dict[str, Path]:
     }
 
 
+def _write_integration_file(path: Path, content: str, skipped_paths: list[str]) -> bool:
+    """Write an integration file, tolerating existing read-only files in agent sandboxes.
+
+    Direct agent runs such as Codex sandbox modes may allow edits to normal project
+    files while blocking rewrites of hidden integration files that already exist.
+    In that case the integration is already installed, so open/ingest should keep
+    updating Autorunne state instead of failing the whole workflow.
+    """
+    try:
+        write_text(path, content)
+        return True
+    except OSError as exc:
+        if path.exists() and exc.errno in {errno.EROFS, errno.EACCES, errno.EPERM}:
+            skipped_paths.append(str(path))
+            return False
+        raise
+
+
 def install_integrations(repo_root: Path, *, tool: str = "all", scope: str = "repo") -> dict:
     targets = _target_roots(repo_root, scope)
     selected = _tool_selection(tool)
     ensure_dir(targets["bin_root"])
     ensure_dir(targets["agents_root"])
     ensure_dir(targets["claude_root"])
-    write_text(targets["agents_md"], _agents_text())
-
-    created_paths = [str(targets["agents_md"])]
+    created_paths: list[str] = []
+    skipped_paths: list[str] = []
+    if _write_integration_file(targets["agents_md"], _agents_text(), skipped_paths):
+        created_paths.append(str(targets["agents_md"]))
     tools_installed: list[str] = []
     wrappers: list[str] = []
 
     if any(name in selected for name in ["codex", "hermes"]):
         skill_path = targets["agents_root"] / "SKILL.md"
-        write_text(skill_path, _skill_text("codex"))
-        created_paths.append(str(skill_path))
+        if _write_integration_file(skill_path, _skill_text("codex"), skipped_paths):
+            created_paths.append(str(skill_path))
         tools_installed.append("codex")
 
     if "claude" in selected:
         skill_path = targets["claude_root"] / "SKILL.md"
-        write_text(skill_path, _skill_text("claude"))
-        created_paths.append(str(skill_path))
+        if _write_integration_file(skill_path, _skill_text("claude"), skipped_paths):
+            created_paths.append(str(skill_path))
         tools_installed.append("claude")
 
     if "cursor" in selected:
-        write_text(targets["cursor_rules"], _cursor_rules_text())
-        created_paths.append(str(targets["cursor_rules"]))
+        if _write_integration_file(targets["cursor_rules"], _cursor_rules_text(), skipped_paths):
+            created_paths.append(str(targets["cursor_rules"]))
         tools_installed.append("cursor")
 
     if "copilot" in selected:
-        write_text(targets["copilot_instructions"], _copilot_instructions_text())
-        created_paths.append(str(targets["copilot_instructions"]))
+        if _write_integration_file(targets["copilot_instructions"], _copilot_instructions_text(), skipped_paths):
+            created_paths.append(str(targets["copilot_instructions"]))
         tools_installed.append("copilot")
 
     wrapper_map = {
@@ -258,9 +278,14 @@ def install_integrations(repo_root: Path, *, tool: str = "all", scope: str = "re
         wrapper_name = f"ar-{name}"
         wrapper_path = targets["bin_root"] / wrapper_name
         content = _wrapper_script(wrapper_map[name]) if scope == "repo" else _user_wrapper_script(wrapper_map[name])
-        write_text(wrapper_path, content)
-        wrapper_path.chmod(0o755)
-        created_paths.append(str(wrapper_path))
+        if _write_integration_file(wrapper_path, content, skipped_paths):
+            try:
+                wrapper_path.chmod(0o755)
+            except OSError as exc:
+                if not (wrapper_path.exists() and exc.errno in {errno.EROFS, errno.EACCES, errno.EPERM}):
+                    raise
+                skipped_paths.append(str(wrapper_path))
+            created_paths.append(str(wrapper_path))
         wrappers.append(wrapper_name)
         if name not in tools_installed:
             tools_installed.append(name)
@@ -271,4 +296,5 @@ def install_integrations(repo_root: Path, *, tool: str = "all", scope: str = "re
         "tools": sorted(set(tools_installed)),
         "wrappers": wrappers,
         "paths": created_paths,
+        "skipped_paths": skipped_paths,
     }

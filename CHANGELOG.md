@@ -2,6 +2,21 @@
 
 All notable changes to Autorunne are documented here.
 
+## 0.6.19 - 2026-05-05
+
+### Fixed
+- `autorunne open` now tolerates existing read-only repo integration files in direct-agent sandboxes such as Codex workspace modes.
+- If files like `.agents/skills/autorunne-workflow/SKILL.md` already exist but cannot be rewritten, Autorunne skips that rewrite and continues updating `.autorunne/` state instead of aborting.
+- Direct `autorunne ingest --source codex ...` flows are more reliable because their internal `open` resume step no longer fails only because a hidden integration file is protected by the sandbox.
+
+### Documentation
+- Added 0.6.19 release notes explaining the real Codex dogfood failure and the sandbox-tolerant fix.
+- Updated GitHub-facing README/version copy to describe the current public release as 0.6.19.
+
+### Verification
+- Added regression coverage for existing read-only integration files during `autorunne open`.
+- Verified focused integration test before release.
+
 ## 0.6.18 - 2026-05-05
 
 ### Improved
