@@ -102,6 +102,19 @@ def default_body(version: str) -> str:
     release_url = f"https://github.com/HUAFIRE777/autorunne/releases/tag/v{version}"
     pypi_url = f"https://pypi.org/project/autorunne/{version}/"
 
+    if version == "0.6.21":
+        intro = """Autorunne 0.6.21 发布了。
+
+这版只修一个很小但真实会误导下一轮 AI 的交接问题：finish 完成任务后，不再把刚完成的任务继续显示成 Next product task。"""
+        bullets = [
+            "finish matched/active task 后，已完成任务不会再留在 next_product_task。",
+            "如果还有 pending 产品任务，会自动回退到下一个产品任务。",
+            "如果没有 pending 产品任务，状态视图会显示 Next product task：无。",
+            "workflow_follow_up 继续保留 finish --next 的流程跟进内容。",
+        ]
+        title = f"Autorunne {version} 发布：完成任务后不再把它当下一步"
+        return title, intro, bullets
+
     if version == "0.6.20":
         intro = """Autorunne 0.6.20 发布了。\n\n这版主要修的是我自己在真实项目交接里遇到的几个小痛点：状态看不清、日志太长、项目里的 agent skill 版本没有跟着 CLI 更新。"""
         bullets = """

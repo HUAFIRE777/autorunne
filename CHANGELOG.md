@@ -2,6 +2,17 @@
 
 All notable changes to Autorunne are documented here.
 
+## 0.6.21 - 2026-05-06
+
+### Fixed
+- `autorunne finish` no longer keeps the just-finished matched/active task as `current.next_product_task` when `--next` is a workflow follow-up.
+- After a task is completed, Autorunne falls back to the next pending product task when one exists; otherwise `next_product_task` is stored as `null` and rendered as `无`.
+- `workflow_follow_up` behavior is preserved, so finish follow-up notes such as reviewing rendered `STATUS.md` / `SESSION_LOG.md` still appear in the workflow slot.
+
+### Verification
+- Added a Codex/HaoPay-style regression test covering `ingest -> finish --task -> workflow follow-up`.
+- Verified with focused finish/next-action tests, `tests/test_cli.py`, `tests/test_state_engine.py`, full `python -m pytest -q`, package build, and Twine metadata check.
+
 ## 0.6.20 - 2026-05-06
 
 ### Fixed
