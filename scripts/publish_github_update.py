@@ -106,14 +106,14 @@ def default_body(version: str) -> str:
         intro = """Autorunne 0.6.21 发布了。
 
 这版只修一个很小但真实会误导下一轮 AI 的交接问题：finish 完成任务后，不再把刚完成的任务继续显示成 Next product task。"""
-        bullets = [
-            "finish matched/active task 后，已完成任务不会再留在 next_product_task。",
-            "如果还有 pending 产品任务，会自动回退到下一个产品任务。",
-            "如果没有 pending 产品任务，状态视图会显示 Next product task：无。",
-            "workflow_follow_up 继续保留 finish --next 的流程跟进内容。",
-        ]
-        title = f"Autorunne {version} 发布：完成任务后不再把它当下一步"
-        return title, intro, bullets
+        bullets = """
+- finish matched/active task 后，已完成任务不会再留在 next_product_task
+- 如果还有 pending 产品任务，会自动回退到下一个产品任务
+- 如果没有 pending 产品任务，状态视图会显示 Next product task：无
+- workflow_follow_up 继续保留 finish --next 的流程跟进内容
+""".strip()
+        why = """简单说：下一轮 AI 打开项目时，不会再被“已经完成的任务”误导。"""
+        return f"""{intro}\n\n{bullets}\n\n{why}\n\n安装或更新：\n\n```bash\npipx upgrade autorunne --pip-args=\"--no-cache-dir -i https://pypi.org/simple\"\n```\n\n新安装：\n\n```bash\npipx install autorunne --pip-args=\"--no-cache-dir -i https://pypi.org/simple\"\n```\n\n检查版本：\n\n```bash\nautorunne --version\n```\n\nRelease: {release_url}\nPyPI: {pypi_url}\n""".strip()
 
     if version == "0.6.20":
         intro = """Autorunne 0.6.20 发布了。\n\n这版主要修的是我自己在真实项目交接里遇到的几个小痛点：状态看不清、日志太长、项目里的 agent skill 版本没有跟着 CLI 更新。"""
@@ -168,7 +168,11 @@ def main() -> int:
         owner, repo = detect_owner_repo()
 
     version = args.version.removeprefix("v")
-    title = args.title or f"Autorunne {version} 发布：更干净的 AI 项目交接"
+    default_titles = {
+        "0.6.21": "Autorunne 0.6.21 发布：完成任务后不再把它当下一步",
+        "0.6.20": "Autorunne 0.6.20 发布：更干净的 AI 项目交接",
+    }
+    title = args.title or default_titles.get(version, f"Autorunne {version} 发布：版本更新")
     body = args.body_file.read_text(encoding="utf-8") if args.body_file else default_body(version)
 
     if args.dry_run:
