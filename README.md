@@ -13,13 +13,14 @@ Autorunne 解决的是这个问题。
 
 ## 0.6.20 重点
 
-这一版来自真实 Codex 课程项目 dogfood：
+这一版来自真实项目升级时暴露出的交接问题：
 
-- 已接入 Autorunne 的项目，可以直接打开 Codex / Claude Code / Hermes / Cursor / Copilot 分配任务。
-- agent 会读取 `.autorunne/views/START_HERE.md` 和 repo skill，然后在后台用 `autorunne ingest` / `checkpoint` / `finish` 记录任务状态。
-- 如果 Codex 沙盒不允许重写已经存在的隐藏集成文件，例如 `.agents/skills/autorunne-workflow/SKILL.md`，`autorunne open` 会安全跳过这个文件，而不是中断整个状态记录。
+- repo skill front matter 会跟着当前 CLI 版本更新，不再长期停在旧版本号。
+- `.autorunne/views/STATUS.md` 直接显示最后一次验证命令、结果和摘要。
+- `SESSION_LOG.md` 不再把完整 build/test 输出铺进去，只保留关键摘要。
+- `workspace open auto-resume` / `integration updated` 这类重复记录更少，交接阅读更干净。
 
-简单说：0.6.20 让“直接打开 agent，Autorunne 在后台生效”这条主路径更稳。0.6.18 的验证证据和 Next Action 拆分能力继续保留。
+简单说：0.6.20 让下一轮 AI 打开项目时，更容易知道上次做了什么、测没测过、下一步该干什么。
 
 ## 适合谁
 
@@ -52,6 +53,22 @@ curl -fsSL https://raw.githubusercontent.com/HUAFIRE777/autorunne/main/scripts/i
 ```
 
 当前公开版本：**0.6.20**
+
+## 发布 GitHub 版本说说
+
+每次发新版后，可以用脚本自动发一条 GitHub Discussions 更新：
+
+```bash
+python scripts/publish_github_update.py --version 0.6.20
+```
+
+先预览、不发布：
+
+```bash
+python scripts/publish_github_update.py --version 0.6.20 --dry-run
+```
+
+脚本使用本机 `gh` 登录态，不保存 token。
 
 ## 30 秒上手
 
