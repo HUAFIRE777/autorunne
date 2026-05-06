@@ -54,7 +54,12 @@ def build_user_summary(state: dict[str, Any], *, missing: list[str] | None = Non
     validation = _latest_validation(sessions)
     validation_status = validation["status"]
     next_action = current.get("next_action") or "确认下一个具体任务"
-    next_product_task = current.get("next_product_task") or next_action
+    if current.get("next_product_task"):
+        next_product_task = current["next_product_task"]
+    elif "next_product_task" in current:
+        next_product_task = "无"
+    else:
+        next_product_task = next_action
     workflow_follow_up = current.get("workflow_follow_up") or "无"
 
     return {

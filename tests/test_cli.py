@@ -460,6 +460,44 @@ def test_next_action_view_splits_product_task_from_workflow_follow_up(python_rep
     assert "Workflow follow-up：Workflow follow-up: 把验证证据渲染到 STATUS.md" in status_view
 
 
+def test_finish_does_not_keep_completed_task_as_next_product_task(python_repo: Path):
+    finished_task = "Tiny frontend copy tweak to exercise AutoRunne 0.6.20 as the local development state memory layer"
+    workflow_next = "Review AutoRunne 0.6.20 rendered STATUS and SESSION_LOG for this completed smoke slice"
+    _run_in(python_repo, ["adopt"])
+    _run_in(python_repo, ["ingest", "--source", "codex", "--task", finished_task])
+
+    finish = _run_in(
+        python_repo,
+        [
+            "finish",
+            "--task",
+            finished_task,
+            "--summary",
+            "Completed the tiny frontend copy tweak",
+            "--validate",
+            "python -m pytest -q",
+            "--next",
+            workflow_next,
+        ],
+    )
+    assert finish.exit_code == 0
+
+    current = json.loads((python_repo / ".autorunne" / "state" / "current.json").read_text(encoding="utf-8"))
+    tasks_view = (python_repo / ".autorunne" / "views" / "TASKS.md").read_text(encoding="utf-8")
+    next_view = (python_repo / ".autorunne" / "views" / "NEXT_ACTION.md").read_text(encoding="utf-8")
+    status_view = (python_repo / ".autorunne" / "views" / "STATUS.md").read_text(encoding="utf-8")
+
+    assert current["active_task"] is None
+    assert current["next_product_task"] is None
+    assert current["workflow_follow_up"] == workflow_next
+    assert finished_task in tasks_view
+    assert f"## Next product task\n{finished_task}" not in next_view
+    assert "## Next product task\n无" in next_view
+    assert f"## Workflow follow-up\n{workflow_next}" in next_view
+    assert f"Next product task：{finished_task}" not in status_view
+    assert "Next product task：无" in status_view
+
+
 def test_sync_appends_summary_and_updates_next_action(python_repo: Path):
     _run_in(python_repo, ["adopt"])
     initial_log = (python_repo / ".autorunne" / "SESSION_LOG.md").read_text(encoding="utf-8")

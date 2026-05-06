@@ -175,7 +175,9 @@ def render_view_bundle(state: dict) -> dict[str, str]:
     decisions_md += "\n".join(recorded or ["- No durable decisions recorded yet"]) + "\n"
 
     user_summary = build_user_summary(state)
-    next_product_task = user_summary.get("next_product_task") or current.get("next_product_task") or current.get("next_action", "Confirm the next concrete step.")
+    next_product_task = user_summary.get("next_product_task")
+    if not next_product_task:
+        next_product_task = current.get("next_product_task") or ("无" if "next_product_task" in current else current.get("next_action", "Confirm the next concrete step."))
     workflow_follow_up = user_summary.get("workflow_follow_up") or current.get("workflow_follow_up") or "无"
 
     session_items = sessions.get('items', [])

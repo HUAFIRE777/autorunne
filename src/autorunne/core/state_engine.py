@@ -162,12 +162,40 @@ def _is_workflow_follow_up_text(text: str) -> bool:
     return any(term in lowered for term in workflow_terms)
 
 
-def _set_next_slots(current: dict[str, Any], next_action: str, *, prefer_product: bool) -> None:
+_MISSING = object()
+
+
+def _first_pending_product_task(state: dict[str, Any], *, exclude_texts: list[str | None]) -> str | None:
+    excluded = {text.strip() for text in exclude_texts if text and text.strip()}
+    for bucket in ("next_up", "in_progress"):
+        for item in state.get("tasks", {}).get(bucket, []):
+            text = (item.get("text") or "").strip()
+            if not text or text in excluded or _is_workflow_follow_up_text(text):
+                continue
+            return text
+    return None
+
+
+def _set_next_slots(
+    current: dict[str, Any],
+    next_action: str,
+    *,
+    prefer_product: bool,
+    product_fallback: str | None | object = _MISSING,
+    exclude_product_texts: list[str | None] | None = None,
+) -> None:
     clean_next = next_action.strip()
-    existing_product = (current.get("next_product_task") or current.get("next_action") or "").strip()
+    excluded = {text.strip() for text in (exclude_product_texts or []) if text and text.strip()}
+    explicit_product_fallback = product_fallback is not _MISSING
+    if explicit_product_fallback:
+        existing_product = (product_fallback or "").strip()  # type: ignore[union-attr]
+    else:
+        existing_product = (current.get("next_product_task") or current.get("next_action") or "").strip()
+    if existing_product in excluded:
+        existing_product = ""
     if clean_next and (not prefer_product) and _is_workflow_follow_up_text(clean_next):
         current["workflow_follow_up"] = clean_next
-        current["next_product_task"] = existing_product or "确认下一个产品开发任务"
+        current["next_product_task"] = existing_product or (None if explicit_product_fallback else "确认下一个产品开发任务")
     else:
         current["next_product_task"] = clean_next
         current.setdefault("workflow_follow_up", "无")
@@ -685,7 +713,21 @@ def finish_task(
         source="finish",
         remove_texts=[completed_text, previous_next_action],
     )
-    _set_next_slots(state["current"], next_action, prefer_product=False)
+    excluded_product_texts = [completed_text, matched, state["current"].get("active_task")]
+    product_fallback = _MISSING
+    if _is_workflow_follow_up_text(next_action):
+        current_product = (state["current"].get("next_product_task") or "").strip()
+        if current_product and current_product not in {text for text in excluded_product_texts if text}:
+            product_fallback = current_product
+        else:
+            product_fallback = _first_pending_product_task(state, exclude_texts=excluded_product_texts)
+    _set_next_slots(
+        state["current"],
+        next_action,
+        prefer_product=False,
+        product_fallback=product_fallback,
+        exclude_product_texts=excluded_product_texts,
+    )
     state["current"]["last_action"] = "task_finished"
     state["current"]["updated_at"] = timestamp
     lines = [
