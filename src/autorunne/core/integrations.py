@@ -3,6 +3,7 @@ from __future__ import annotations
 import errno
 from pathlib import Path
 
+from autorunne import __version__ as AUTORUNNE_VERSION
 from autorunne.core.paths import ensure_dir, workflow_bin_dir, write_text
 
 VALID_TOOLS = {"codex", "claude", "hermes", "cursor", "copilot", "all"}
@@ -27,7 +28,7 @@ def _skill_text(tool: str) -> str:
     return f"""---
 name: autorunne-workflow
 description: Repo-local Autorunne workflow instructions for this repository
-version: 0.6.19
+version: {AUTORUNNE_VERSION}
 ---
 
 # Autorunne Workflow Skill
@@ -215,14 +216,17 @@ def _target_roots(repo_root: Path, scope: str) -> dict[str, Path]:
 
 
 def _write_integration_file(path: Path, content: str, skipped_paths: list[str]) -> bool:
-    """Write an integration file, tolerating existing read-only files in agent sandboxes.
+    """Write an integration file and report whether its content changed.
 
     Direct agent runs such as Codex sandbox modes may allow edits to normal project
     files while blocking rewrites of hidden integration files that already exist.
     In that case the integration is already installed, so open/ingest should keep
     updating Autorunne state instead of failing the whole workflow.
     """
+    normalized = content.rstrip() + "\n"
     try:
+        if path.exists() and path.read_text(encoding="utf-8") == normalized:
+            return False
         write_text(path, content)
         return True
     except OSError as exc:

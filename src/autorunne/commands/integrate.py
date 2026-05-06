@@ -18,5 +18,5 @@ def run(target: Path, *, tool: str = "all", scope: str = "repo") -> dict:
         bootstrap_workspace(repo_root, scan, action="workspace_bootstrapped", note="bootstrap for repo integration install")
     result = install_integrations(repo_root, tool=tool, scope=scope)
     if scope == "repo":
-        record_integration(repo_root, scope=scope, tools=result["tools"], wrappers=result["wrappers"], action="integration_updated")
+        record_integration(repo_root, scope=scope, tools=result["tools"], wrappers=result["wrappers"], action="integration_updated", changed_paths=result.get("paths", []), skipped_paths=result.get("skipped_paths", []))
     return result

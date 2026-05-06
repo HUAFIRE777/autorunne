@@ -25,7 +25,7 @@ def run(target: Path, with_vscode: bool = False) -> dict:
         action = "bootstrapped"
 
     integration = install_integrations(repo_root, tool="all", scope="repo")
-    record_integration(repo_root, scope="repo", tools=integration["tools"], wrappers=integration["wrappers"], action="integration_updated" if existing else "integration_installed")
+    record_integration(repo_root, scope="repo", tools=integration["tools"], wrappers=integration["wrappers"], action="integration_updated" if existing else "integration_installed", changed_paths=integration.get("paths", []), skipped_paths=integration.get("skipped_paths", []))
 
     vscode_result = None
     if with_vscode:

@@ -22,7 +22,7 @@ def run(target: Path, with_vscode: bool = False) -> dict:
     save_config(repo_root, WorkflowConfig())
     exclude_path = ensure_local_exclude(repo_root)
     integration = install_integrations(repo_root, tool="all", scope="repo")
-    record_integration(repo_root, scope="repo", tools=integration["tools"], wrappers=integration["wrappers"], action="integration_installed")
+    record_integration(repo_root, scope="repo", tools=integration["tools"], wrappers=integration["wrappers"], action="integration_installed", changed_paths=integration.get("paths", []), skipped_paths=integration.get("skipped_paths", []))
     result = {
         "repo_root": str(repo_root),
         "exclude_path": str(exclude_path),

@@ -2,6 +2,19 @@
 
 All notable changes to Autorunne are documented here.
 
+## 0.6.20 - 2026-05-06
+
+### Fixed
+- Repo skill front matter is now generated from the running Autorunne package version, so `.agents/skills/autorunne-workflow/SKILL.md` and `.claude/skills/autorunne-workflow/SKILL.md` refresh to `version: 0.6.20` instead of staying on older template versions.
+- `SESSION_LOG.md` validation entries now keep the validation command, status, and a concise output summary instead of dumping full build/test output into the human-facing log.
+- Repeated `workspace open auto-resume` entries are deduplicated when consecutive `autorunne open` calls produce the same state summary.
+- No-op `integration updated` records are suppressed; Autorunne only records integration updates when files changed or sandbox read-only skips are meaningful.
+- `STATUS.md` now directly displays the latest validation command, status, timestamp, and validation output summary.
+
+### Verification
+- Added regression coverage for stale repo skill version refresh, Codex-style read-only integration skips, concise validation logs, clean `STATUS.md` evidence, and repeated-open dedupe.
+- Verified with `python -m pytest -q` and `python -m build`.
+
 ## 0.6.19 - 2026-05-05
 
 ### Fixed

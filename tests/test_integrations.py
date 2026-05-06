@@ -6,6 +6,7 @@ from typer.testing import CliRunner
 
 from autorunne.core import integrations
 from autorunne.cli import app
+from autorunne import __version__
 
 runner = CliRunner()
 
@@ -39,8 +40,9 @@ def test_integrate_repo_scope_installs_skills_and_wrappers(git_repo: Path):
     copilot = (git_repo / ".github" / "copilot-instructions.md").read_text(encoding="utf-8")
     assert agents_skill.startswith("---\n")
     assert "name: autorunne-workflow" in agents_skill
+    assert f"version: {__version__}" in agents_skill
     assert claude_skill.startswith("---\n")
-    assert "version: 0.6.19" in claude_skill
+    assert f"version: {__version__}" in claude_skill
     assert "open Codex directly" in agents_skill
     assert "autorunne ingest --source codex --task <task>" in agents_skill
     assert "load this repo skill" in agents_skill
@@ -74,6 +76,7 @@ def test_open_skips_existing_read_only_integrations_in_agent_sandbox(node_repo: 
     assert first.exit_code == 0
     protected_skill = node_repo / ".agents" / "skills" / "autorunne-workflow" / "SKILL.md"
     original_skill_text = protected_skill.read_text(encoding="utf-8")
+    protected_skill.write_text(original_skill_text.replace(f"version: {__version__}", "version: 0.6.17"), encoding="utf-8")
     real_write_text = integrations.write_text
 
     def sandbox_write_text(path: Path, content: str) -> None:
@@ -87,9 +90,24 @@ def test_open_skips_existing_read_only_integrations_in_agent_sandbox(node_repo: 
 
     assert resumed.exit_code == 0
     assert "resumed" in resumed.stdout
-    assert protected_skill.read_text(encoding="utf-8") == original_skill_text
+    assert "version: 0.6.17" in protected_skill.read_text(encoding="utf-8")
     log_text = (node_repo / ".autorunne" / "SESSION_LOG.md").read_text(encoding="utf-8")
     assert "integration updated" in log_text
+    assert "Skipped read-only integration files" in log_text
+
+
+def test_open_refreshes_stale_repo_skill_version(node_repo: Path):
+    first = _run_in(node_repo, ["open"])
+    assert first.exit_code == 0
+
+    agents_skill_path = node_repo / ".agents" / "skills" / "autorunne-workflow" / "SKILL.md"
+    stale_text = agents_skill_path.read_text(encoding="utf-8").replace(f"version: {__version__}", "version: 0.6.17")
+    agents_skill_path.write_text(stale_text, encoding="utf-8")
+
+    resumed = _run_in(node_repo, ["open"])
+
+    assert resumed.exit_code == 0
+    assert f"version: {__version__}" in agents_skill_path.read_text(encoding="utf-8")
 
 
 def test_open_renders_standard_library_python_commands(standard_library_python_repo: Path):

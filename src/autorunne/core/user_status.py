@@ -9,6 +9,7 @@ def _latest_validation(sessions: dict[str, Any]) -> dict[str, str]:
     for session in reversed(sessions.get("items", [])):
         command = "未记录"
         status = "未记录"
+        output = "未记录"
         for line in session.get("lines", []):
             if line.startswith("Validation command:"):
                 command = line.split(":", 1)[1].strip() or "未记录"
@@ -20,13 +21,16 @@ def _latest_validation(sessions: dict[str, Any]) -> dict[str, str]:
                     status = "失败"
                 else:
                     status = raw or "未记录"
+            if line.startswith("Validation output:") or line.startswith("validation_output:"):
+                output = line.split(":", 1)[1].strip() or "未记录"
         if command != "未记录" or status != "未记录":
             return {
                 "status": status,
                 "command": command,
                 "time": session.get("timestamp") or "未记录",
+                "output": output,
             }
-    return {"status": "未记录", "command": "未记录", "time": "未记录"}
+    return {"status": "未记录", "command": "未记录", "time": "未记录", "output": "未记录"}
 
 
 def build_user_summary(state: dict[str, Any], *, missing: list[str] | None = None) -> dict[str, str]:
@@ -58,6 +62,7 @@ def build_user_summary(state: dict[str, Any], *, missing: list[str] | None = Non
         "validation_status": validation_status,
         "validation_command": validation["command"],
         "validation_time": validation["time"],
+        "validation_output": validation.get("output", "未记录"),
         "next_action": next_action,
         "next_product_task": next_product_task,
         "workflow_follow_up": workflow_follow_up,

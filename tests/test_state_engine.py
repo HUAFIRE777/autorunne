@@ -158,3 +158,42 @@ def test_finish_records_structured_state_details(python_repo: Path):
     assert "validation" in sessions_text
     assert "task_finished" in events_text
     assert "Ship docs" in current_text
+
+
+def test_finish_keeps_session_log_validation_output_concise_and_status_visible(python_repo: Path):
+    _run_in(python_repo, ["adopt"])
+    long_script = "for i in range(30): print('line %s' % i)"
+
+    result = _run_in(
+        python_repo,
+        [
+            "finish",
+            "--summary",
+            "Recorded concise validation",
+            "--validate",
+            f'python -c "{long_script}"',
+            "--next",
+            "Continue product slice",
+        ],
+    )
+    assert result.exit_code == 0
+
+    session_log = (python_repo / ".autorunne" / "SESSION_LOG.md").read_text(encoding="utf-8")
+    status = (python_repo / ".autorunne" / "views" / "STATUS.md").read_text(encoding="utf-8")
+    assert "Validation command:" in session_log
+    assert "validation_output:" in session_log
+    assert "line 0" in session_log
+    assert "line 29" not in session_log
+    assert "more lines omitted" in session_log
+    assert "验证命令：`python -c" in status
+    assert "验证结果摘要：line 0" in status
+
+
+def test_repeated_open_does_not_duplicate_identical_resume_or_integration_logs(python_repo: Path):
+    _run_in(python_repo, ["open"])
+    _run_in(python_repo, ["open"])
+    _run_in(python_repo, ["open"])
+
+    log_text = (python_repo / ".autorunne" / "SESSION_LOG.md").read_text(encoding="utf-8")
+    assert log_text.count("| workspace open auto-resume") == 1
+    assert log_text.count("integration updated") <= 1

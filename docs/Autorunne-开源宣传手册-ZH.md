@@ -109,10 +109,10 @@ Autorunne 是一个本地优先的 AI 开发工作流层，把项目上下文、
 
 Autorunne 会在仓库里维护任务、决策、推荐命令、验证结果和下一步。新的 agent 进来先读 `START_HERE.md`，就能知道项目该怎么继续。
 
-适合独立开发、AI 编程课程、客户交付和开源项目维护。现在 0.6.19 已经可以用 `pipx install autorunne` 安装。
+适合独立开发、AI 编程课程、客户交付和开源项目维护。现在 0.6.20 已经可以用 `pipx install autorunne` 安装。
 
 GitHub：<https://github.com/HUAFIRE777/autorunne>
 
 ## 版本状态
 
-0.6.19 已完成 GitHub Release、PyPI、服务器运行环境和真实课程 demo 的基础验证。适合公开演示、教学和早期商业验证。
+0.6.20 已完成 GitHub Release、PyPI、服务器运行环境和真实课程 demo 的基础验证。适合公开演示、教学和早期商业验证。

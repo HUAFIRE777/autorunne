@@ -498,13 +498,33 @@ def _touch_current_from_scan(current: dict[str, Any], scan: dict[str, Any], *, a
     )
 
 
+
+def _summarize_validation_output(output: str | None, *, max_lines: int = 8, max_chars: int = 1200) -> str:
+    clean = (output or "").strip()
+    if not clean:
+        return "no output"
+    lines = clean.splitlines()
+    shown = lines[:max_lines]
+    summary = "\n".join(shown)
+    omitted = len(lines) - len(shown)
+    if len(summary) > max_chars:
+        summary = summary[:max_chars].rstrip() + "..."
+    if omitted > 0:
+        summary += f"\n... ({omitted} more lines omitted; full output kept in state/events payload)"
+    return summary
+
 def _append_session(state: dict[str, Any], *, title: str, lines: list[str], timestamp: str | None = None) -> None:
+    clean_lines = [line for line in lines if line]
     entry = {
         "timestamp": timestamp or utc_now(),
         "title": title,
-        "lines": [line for line in lines if line],
+        "lines": clean_lines,
     }
-    state["sessions"].setdefault("items", []).append(entry)
+    items = state["sessions"].setdefault("items", [])
+    if items and items[-1].get("title") == title and items[-1].get("lines") == clean_lines:
+        items[-1]["timestamp"] = entry["timestamp"]
+        return
+    items.append(entry)
 
 
 def bootstrap_workspace(repo_root: Path, scan: dict[str, Any], *, action: str, note: str | None = None) -> dict[str, Any]:
@@ -554,9 +574,9 @@ def sync_workspace(repo_root: Path, scan: dict[str, Any], *, action: str, note: 
     ]
     if archived_release_items:
         lines.append(f"Archived release backlog: {', '.join(archived_release_items)}")
-    if note:
-        lines.append(f"Note: {note.strip()}")
     title = "workspace open auto-resume" if action == "workspace_resumed" else "sync summary"
+    if note and note.strip() != title:
+        lines.append(f"Note: {note.strip()}")
     _append_session(state, title=title, lines=lines, timestamp=current["updated_at"])
     save_workspace_state(repo_root, state)
     append_event(repo_root, action, {"note": note, "scan": scan})
@@ -620,7 +640,7 @@ def record_checkpoint(
     if validation:
         lines.append(f"Validation command: {validation['command']}")
         lines.append(f"Validation result: {validation['status']}")
-        lines.append(f"validation: {validation}")
+        lines.append(f"validation_output: {_summarize_validation_output(validation.get('output'))}")
         payload["validation"] = validation
     _append_session(state, title="checkpoint", lines=lines, timestamp=timestamp)
     save_workspace_state(repo_root, state)
@@ -690,7 +710,7 @@ def finish_task(
     if validation:
         lines.append(f"Validation command: {validation['command']}")
         lines.append(f"Validation result: {validation['status']}")
-        lines.append(f"validation: {validation}")
+        lines.append(f"validation_output: {_summarize_validation_output(validation.get('output'))}")
         payload["validation"] = validation
     _append_session(state, title="finish summary", lines=lines, timestamp=timestamp)
     save_workspace_state(repo_root, state)
@@ -763,23 +783,50 @@ def record_hermes_ingress(
     )
 
 
-def record_integration(repo_root: Path, *, scope: str, tools: list[str], wrappers: list[str], action: str) -> dict[str, Any]:
+def record_integration(
+    repo_root: Path,
+    *,
+    scope: str,
+    tools: list[str],
+    wrappers: list[str],
+    action: str,
+    changed_paths: list[str] | None = None,
+    skipped_paths: list[str] | None = None,
+) -> dict[str, Any]:
     state = load_workspace_state(repo_root)
     timestamp = utc_now()
     bucket = state["current"].setdefault("integrations", {}).setdefault(scope, {"tools": [], "wrappers": [], "updated_at": None})
-    bucket["tools"] = sorted(set(bucket.get("tools", []) + tools))
-    bucket["wrappers"] = sorted(set(bucket.get("wrappers", []) + wrappers))
+    new_tools = sorted(set(bucket.get("tools", []) + tools))
+    new_wrappers = sorted(set(bucket.get("wrappers", []) + wrappers))
+    changed_paths = changed_paths or []
+    skipped_paths = skipped_paths or []
+    unchanged_update = (
+        action == "integration_updated"
+        and bucket.get("tools", []) == new_tools
+        and bucket.get("wrappers", []) == new_wrappers
+        and not changed_paths
+        and not skipped_paths
+    )
+    if unchanged_update:
+        return state
+    bucket["tools"] = new_tools
+    bucket["wrappers"] = new_wrappers
     bucket["updated_at"] = timestamp
     state["current"]["updated_at"] = timestamp
     state["current"]["last_action"] = action
+    lines = [f"Scope: {scope}", f"Tools: {', '.join(tools)}", f"Wrappers: {', '.join(wrappers) or 'none'}"]
+    if changed_paths:
+        lines.append(f"Updated files: {', '.join(changed_paths)}")
+    if skipped_paths:
+        lines.append(f"Skipped read-only integration files: {', '.join(skipped_paths)}")
     _append_session(
         state,
         title="integration installed" if action == "integration_installed" else "integration updated",
-        lines=[f"Scope: {scope}", f"Tools: {', '.join(tools)}", f"Wrappers: {', '.join(wrappers) or 'none'}"],
+        lines=lines,
         timestamp=timestamp,
     )
     save_workspace_state(repo_root, state)
-    append_event(repo_root, action, {"scope": scope, "tools": tools, "wrappers": wrappers})
+    append_event(repo_root, action, {"scope": scope, "tools": tools, "wrappers": wrappers, "changed_paths": changed_paths, "skipped_paths": skipped_paths})
     render_views(repo_root)
     return state
 

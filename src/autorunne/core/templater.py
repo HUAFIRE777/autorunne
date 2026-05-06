@@ -279,6 +279,7 @@ Open Codex / Claude Code / Hermes directly in this repo and just give the task. 
 - 当前项目状态：{user_summary['project_state']}
 - 上次验证：{user_summary['validation_status']}
 - 验证命令：`{user_summary['validation_command']}`
+- 验证结果摘要：{user_summary['validation_output']}
 - 验证时间：{user_summary['validation_time']}
 - Next product task：{next_product_task}
 - Workflow follow-up：{workflow_follow_up}

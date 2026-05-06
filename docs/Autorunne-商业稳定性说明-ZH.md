@@ -1,8 +1,8 @@
-# Autorunne 商业稳定性说明（0.6.19）
+# Autorunne 商业稳定性说明（0.6.20）
 
 ## 结论
 
-Autorunne 0.6.19 可以对外开源展示，也可以用于教学、顾问交付流程和早期客户验证。
+Autorunne 0.6.20 可以对外开源展示，也可以用于教学、顾问交付流程和早期客户验证。
 
 更准确的说法是：
 
@@ -10,8 +10,8 @@ Autorunne 0.6.19 可以对外开源展示，也可以用于教学、顾问交付
 
 ## 已经验证的部分
 
-- GitHub Release：`v0.6.19`
-- PyPI：`autorunne==0.6.19`
+- GitHub Release：`v0.6.20`
+- PyPI：`autorunne==0.6.20`
 - 安装方式：`pipx install autorunne`
 - 服务器运行环境已确认可用
 - 真实课程开发项目已跑通 `open → sync → start/ingest → test → finish`
@@ -66,7 +66,7 @@ Autorunne 0.6.19 可以对外开源展示，也可以用于教学、顾问交付
 
 ## 对外一句话
 
-Autorunne 0.6.19 已适合公开开源展示和早期商业验证：用户只管给 agent 分配任务，Autorunne 在仓库里保存项目记忆、任务状态、验证结果和下一步。
+Autorunne 0.6.20 已适合公开开源展示和早期商业验证：用户只管给 agent 分配任务，Autorunne 在仓库里保存项目记忆、任务状态、验证结果和下一步。
 
 ## 商业稳定性说明补充
 
