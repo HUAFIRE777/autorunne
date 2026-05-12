@@ -2,6 +2,17 @@
 
 All notable changes to Autorunne are documented here.
 
+## 0.6.22 - 2026-05-12
+
+### Improved
+- `workspace open auto-resume` session entries are now coalesced even when an integration refresh/noise entry sits between repeated `autorunne open` calls.
+- Autorunne updates the latest matching resume timestamp instead of growing `SESSION_LOG.md` with duplicate resume lines around the same handoff.
+- Real development milestones such as `start task`, `checkpoint`, and `finish summary` still separate phases so meaningful progress is preserved.
+
+### Verification
+- Added regression coverage for non-consecutive repeated-open dedupe with an interleaved integration refresh.
+- Verified focused open/integration tests before release, then full tests/build/twine check during release finalization.
+
 ## 0.6.21 - 2026-05-06
 
 ### Fixed

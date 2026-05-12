@@ -552,6 +552,19 @@ def _append_session(state: dict[str, Any], *, title: str, lines: list[str], time
     if items and items[-1].get("title") == title and items[-1].get("lines") == clean_lines:
         items[-1]["timestamp"] = entry["timestamp"]
         return
+
+    # Workspace open is a resume signal, not meaningful task progress. In real
+    # agent usage it can be triggered several times around the same handoff and
+    # an integration refresh can sit between two otherwise identical resume
+    # events. Keep the latest timestamp instead of growing SESSION_LOG noise.
+    if title == "workspace open auto-resume":
+        for existing in reversed(items):
+            if existing.get("title") == title and existing.get("lines") == clean_lines:
+                existing["timestamp"] = entry["timestamp"]
+                return
+            if existing.get("title") in {"start task", "checkpoint", "finish summary"}:
+                break
+
     items.append(entry)
 
 

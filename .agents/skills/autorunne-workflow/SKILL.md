@@ -1,7 +1,7 @@
 ---
 name: autorunne-workflow
 description: Repo-local Autorunne workflow instructions for this repository
-version: 0.6.21
+version: 0.6.22
 ---
 
 # Autorunne Workflow Skill

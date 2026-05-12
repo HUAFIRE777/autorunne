@@ -102,6 +102,19 @@ def default_body(version: str) -> str:
     release_url = f"https://github.com/HUAFIRE777/autorunne/releases/tag/v{version}"
     pypi_url = f"https://pypi.org/project/autorunne/{version}/"
 
+    if version == "0.6.22":
+        intro = """Autorunne 0.6.22 发布了。
+
+这版是在 0.6.21 核心状态修复通过真实项目验证后，继续打磨日志洁净度：重复打开工作区时，SESSION_LOG 更安静、更容易读。"""
+        bullets = """
+- 多次 autorunne open 触发的 workspace open auto-resume 会更稳地去重
+- 即使中间夹着 integration refresh/noise，相同 auto-resume 也只更新时间，不继续刷屏
+- start task / checkpoint / finish summary 仍会切开不同开发阶段，保留真正进展
+- 0.6.21 的 finish next_product_task 安全修复继续保留
+""".strip()
+        why = """简单说：状态继续安全，日志更干净，下一轮 AI 打开项目时更容易接手。"""
+        return f"""{intro}\n\n{bullets}\n\n{why}\n\n安装或更新：\n\n```bash\npipx upgrade autorunne --pip-args=\"--no-cache-dir -i https://pypi.org/simple\"\n```\n\n新安装：\n\n```bash\npipx install autorunne --pip-args=\"--no-cache-dir -i https://pypi.org/simple\"\n```\n\n检查版本：\n\n```bash\nautorunne --version\n```\n\nRelease: {release_url}\nPyPI: {pypi_url}\n""".strip()
+
     if version == "0.6.21":
         intro = """Autorunne 0.6.21 发布了。
 
@@ -169,6 +182,7 @@ def main() -> int:
 
     version = args.version.removeprefix("v")
     default_titles = {
+        "0.6.22": "Autorunne 0.6.22 发布：workspace open 日志更干净",
         "0.6.21": "Autorunne 0.6.21 发布：完成任务后不再把它当下一步",
         "0.6.20": "Autorunne 0.6.20 发布：更干净的 AI 项目交接",
     }

@@ -13,6 +13,7 @@ RELEASE_NOTES_0615 = ROOT / "docs" / "Autorunne-Release-Notes-0.6.15-ZH.md"
 RELEASE_NOTES_0616 = ROOT / "docs" / "Autorunne-Release-Notes-0.6.16-ZH.md"
 RELEASE_NOTES_0620 = ROOT / "docs" / "Autorunne-Release-Notes-0.6.20-ZH.md"
 RELEASE_NOTES_0621 = ROOT / "docs" / "Autorunne-Release-Notes-0.6.21-ZH.md"
+RELEASE_NOTES_0622 = ROOT / "docs" / "Autorunne-Release-Notes-0.6.22-ZH.md"
 COMMERCIAL_STABILITY = ROOT / "docs" / "Autorunne-商业稳定性说明-ZH.md"
 
 
@@ -38,7 +39,7 @@ def test_chinese_manual_documents_monorepo_support():
     assert "packages/*" in text
     assert "cd frontend && npm run build" in text
     assert "sync` 不应该再把项目误判" in text
-    assert "autorunne release --version 0.6.21" in text
+    assert "autorunne release --version 0.6.22" in text
 
 
 def test_usage_guides_are_updated_for_0613_monorepos():
@@ -52,31 +53,31 @@ def test_usage_guides_are_updated_for_0613_monorepos():
         assert "cd frontend && npm run build" in text
         assert "cd backend && npm test" in text
         assert "cd contracts && npm run compile" in text
-        assert "autorunne-0.6.21-py3-none-any.whl" in text
-        assert "autorunne release --version 0.6.21" in text
+        assert "autorunne-0.6.22-py3-none-any.whl" in text
+        assert "autorunne release --version 0.6.22" in text
 
 
 def test_business_docs_position_autorunne_as_repo_local_memory_layer():
     product = PRODUCT_BRIEF.read_text(encoding="utf-8")
     business = BUSINESS_PLAN.read_text(encoding="utf-8")
     sales = SALES_POSITIONING.read_text(encoding="utf-8")
-    release = RELEASE_NOTES_0621.read_text(encoding="utf-8")
+    release = RELEASE_NOTES_0622.read_text(encoding="utf-8")
     commercial = COMMERCIAL_STABILITY.read_text(encoding="utf-8")
 
-    assert "当前版本定位：0.6.21" in product
+    assert "当前版本定位：0.6.22" in product
     assert "repo-local 项目记忆" in product
     assert "frontend/backend/contracts" in product
     assert "商业稳定性结论" in product
 
-    assert "免费开源层（0.6.21 已覆盖）" in business
+    assert "免费开源层（0.6.22 已覆盖）" in business
     assert "Hermes 记住用户和跨项目经验，Autorunne 记住这个 repo 的项目状态" in business
     assert "教学 + 交付 + 顾问服务" in business
 
     assert "AI 项目记忆与开发工作流内核" in sales
-    assert "0.6.21 更适合真实项目演示" in sales
+    assert "0.6.22 更适合真实项目演示" in sales
 
-    assert "Autorunne 0.6.21 发布说明" in release
-    assert "PyPI：`autorunne==0.6.21`" in release
+    assert "Autorunne 0.6.22 发布说明" in release
+    assert "PyPI：`autorunne==0.6.22`" in release
     assert "商业稳定性说明" in commercial
     assert "可商用验证的 Beta 工作流层" in commercial
 

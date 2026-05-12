@@ -192,6 +192,12 @@ def test_finish_keeps_session_log_validation_output_concise_and_status_visible(p
 def test_repeated_open_does_not_duplicate_identical_resume_or_integration_logs(python_repo: Path):
     _run_in(python_repo, ["open"])
     _run_in(python_repo, ["open"])
+
+    # Simulate a real agent handoff where an integration refresh/noise entry can
+    # sit between two otherwise identical open auto-resume events.
+    skill_path = python_repo / ".agents" / "skills" / "autorunne-workflow" / "SKILL.md"
+    skill_path.write_text(skill_path.read_text(encoding="utf-8").replace("version: 0.6.22", "version: 0.6.0"), encoding="utf-8")
+    _run_in(python_repo, ["open"])
     _run_in(python_repo, ["open"])
 
     log_text = (python_repo / ".autorunne" / "SESSION_LOG.md").read_text(encoding="utf-8")
