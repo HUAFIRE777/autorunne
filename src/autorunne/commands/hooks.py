@@ -33,7 +33,7 @@ def _write_precommit_config(target: Path) -> Path:
 def run(target: Path, with_pre_commit: bool = False) -> dict:
     repo_root = detect_repo_root(target) or target
     if not (repo_root / ".git").exists():
-        raise RuntimeError("autorunne hooks must run inside an existing git repository")
+        raise RuntimeError("autorunne hooks needs a Git repository first. ⏰ Run `git init` first, then rerun `autorunne hooks`.")
     sync_script = "#!/usr/bin/env sh\nautorunne sync >/dev/null 2>&1 || true\n"
     post_checkout = install_hook(repo_root, "post-checkout", sync_script)
     post_merge = install_hook(repo_root, "post-merge", sync_script)

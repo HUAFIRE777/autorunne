@@ -16,7 +16,7 @@ def run(
 ) -> dict:
     repo_root = detect_repo_root(target) or target
     if not (repo_root / ".git").exists():
-        raise RuntimeError("autorunne checkpoint must run inside an existing git repository")
+        raise RuntimeError("autorunne checkpoint needs a Git repository first. ⏰ Run `git init` first, then rerun `autorunne checkpoint`.")
 
     clean_summary = summary.strip()
     resolved_next_action = next_action.strip() if next_action else clean_summary

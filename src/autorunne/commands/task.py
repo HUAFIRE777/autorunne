@@ -26,7 +26,7 @@ def _normalize_section(section: str) -> str:
 def add(target: Path, *, text: str, section: str = "next-up") -> dict:
     repo_root = detect_repo_root(target) or target
     if not (repo_root / ".git").exists():
-        raise RuntimeError("autorunne task add must run inside an existing git repository")
+        raise RuntimeError("autorunne task add needs a Git repository first. ⏰ Run `git init` first, then rerun `autorunne task add`.")
     if not workflow_exists(repo_root):
         raise RuntimeError("autorunne task add requires an initialized Autorunne workspace")
     result = mutate_task_list(repo_root, action="add", text=text, section=_normalize_section(section))
@@ -36,7 +36,7 @@ def add(target: Path, *, text: str, section: str = "next-up") -> dict:
 def done(target: Path, *, match: str, section: str = "next-up") -> dict:
     repo_root = detect_repo_root(target) or target
     if not (repo_root / ".git").exists():
-        raise RuntimeError("autorunne task done must run inside an existing git repository")
+        raise RuntimeError("autorunne task done needs a Git repository first. ⏰ Run `git init` first, then rerun `autorunne task done`.")
     if not workflow_exists(repo_root):
         raise RuntimeError("autorunne task done requires an initialized Autorunne workspace")
     result = mutate_task_list(repo_root, action="done", match=match, section=_normalize_section(section))
@@ -46,7 +46,7 @@ def done(target: Path, *, match: str, section: str = "next-up") -> dict:
 def remove(target: Path, *, match: str, section: str = "next-up") -> dict:
     repo_root = detect_repo_root(target) or target
     if not (repo_root / ".git").exists():
-        raise RuntimeError("autorunne task remove must run inside an existing git repository")
+        raise RuntimeError("autorunne task remove needs a Git repository first. ⏰ Run `git init` first, then rerun `autorunne task remove`.")
     if not workflow_exists(repo_root):
         raise RuntimeError("autorunne task remove requires an initialized Autorunne workspace")
     result = mutate_task_list(repo_root, action="remove", match=match, section=_normalize_section(section))

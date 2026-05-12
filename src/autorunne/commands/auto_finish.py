@@ -9,7 +9,7 @@ from autorunne.core.gitops import detect_repo_root
 def run(target: Path, *, source: str = "agent") -> dict:
     repo_root = detect_repo_root(target) or target
     if not (repo_root / ".git").exists():
-        raise RuntimeError("autorunne auto-finish must run inside an existing git repository")
+        raise RuntimeError("autorunne auto-finish needs a Git repository first. ⏰ Run `git init` first, then rerun `autorunne auto-finish`.")
 
     result = auto_finish_active_task(repo_root, source=source)
     return {"repo_root": str(repo_root), **result}

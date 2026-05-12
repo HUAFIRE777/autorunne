@@ -12,7 +12,7 @@ from autorunne.commands import sync as sync_cmd
 def run(target: Path, duration: float = 30.0, interval: float = 1.0) -> dict:
     repo_root = detect_repo_root(target) or target
     if not (repo_root / ".git").exists():
-        raise RuntimeError("autorunne watch must run inside an existing git repository")
+        raise RuntimeError("autorunne watch needs a Git repository first. ⏰ Run `git init` first, then rerun `autorunne watch`.")
 
     start = time.time()
     previous = snapshot_tree(repo_root)

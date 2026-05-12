@@ -14,7 +14,7 @@ from autorunne.models.config import WorkflowConfig
 def run(target: Path, with_vscode: bool = False) -> dict:
     repo_root = detect_repo_root(target) or target
     if not (repo_root / ".git").exists():
-        raise RuntimeError("autorunne adopt must run inside an existing git repository")
+        raise RuntimeError("autorunne adopt needs a Git repository first. ⏰ Run `git init` first, then rerun `autorunne adopt`.")
     scan = scan_repo(repo_root)
     scan["next_action"] = recommend_next_action(scan)
     bootstrap_workspace(repo_root, scan, action="workspace_adopted")

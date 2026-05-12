@@ -2,6 +2,19 @@
 
 All notable changes to Autorunne are documented here.
 
+## 0.6.23 - 2026-05-12
+
+### Improved
+- Commands that are run before `git init` now show a friendly actionable reminder instead of only saying the workspace is not a Git repository.
+- The reminder tells users to run `git init` first and then rerun the same `autorunne ...` command.
+- Common entry commands such as `autorunne open`, `init`, `adopt`, `sync`, `ingest`, `start`, and `finish` now exit cleanly with the reminder instead of a noisy traceback.
+
+### Documentation
+- The 30-second quickstart now explicitly shows `git init` before `autorunne open --with-vscode`.
+
+### Verification
+- Added CLI regression coverage for non-Git workspaces to ensure the output includes `git init` and no traceback.
+
 ## 0.6.22 - 2026-05-12
 
 ### Improved

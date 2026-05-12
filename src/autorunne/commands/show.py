@@ -9,7 +9,7 @@ from autorunne.core.state_engine import show_section, workflow_exists, workflow_
 def run(target: Path, *, section: str = "all") -> dict:
     repo_root = detect_repo_root(target) or target
     if not (repo_root / ".git").exists():
-        raise RuntimeError("autorunne show must run inside an existing git repository")
+        raise RuntimeError("autorunne show needs a Git repository first. ⏰ Run `git init` first, then rerun `autorunne show`.")
     if workflow_needs_migration(repo_root):
         raise RuntimeError("autorunne show found a legacy markdown workspace. Run `autorunne migrate` first.")
     if not workflow_exists(repo_root):

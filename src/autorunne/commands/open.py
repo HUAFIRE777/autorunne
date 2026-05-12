@@ -14,7 +14,7 @@ from autorunne.core.vscode import install_vscode_integration
 def run(target: Path, with_vscode: bool = False) -> dict:
     repo_root = detect_repo_root(target) or target
     if not (repo_root / ".git").exists():
-        raise RuntimeError("autorunne open must run inside an existing git repository")
+        raise RuntimeError("autorunne open needs a Git repository first. ⏰ Run `git init` first, then rerun `autorunne open`.")
 
     existing = workflow_exists(repo_root)
     if existing:

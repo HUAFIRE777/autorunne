@@ -17,7 +17,7 @@ def run(
 ) -> dict:
     repo_root = detect_repo_root(target) or target
     if not (repo_root / ".git").exists():
-        raise RuntimeError("autorunne record must run inside an existing git repository")
+        raise RuntimeError("autorunne record needs a Git repository first. ⏰ Run `git init` first, then rerun `autorunne record`.")
     if not workflow_exists(repo_root):
         raise RuntimeError("autorunne record requires an initialized Autorunne workspace")
     result = manual_record(

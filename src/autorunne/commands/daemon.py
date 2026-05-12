@@ -13,7 +13,7 @@ from autorunne.core.gitops import detect_repo_root
 def run(target: Path, duration: float = 30.0, interval: float = 1.0, max_syncs: int | None = None) -> dict:
     repo_root = detect_repo_root(target) or target
     if not (repo_root / ".git").exists():
-        raise RuntimeError("autorunne daemon must run inside an existing git repository")
+        raise RuntimeError("autorunne daemon needs a Git repository first. ⏰ Run `git init` first, then rerun `autorunne daemon`.")
 
     open_result = open_cmd.run(repo_root)
     previous = snapshot_tree(repo_root)

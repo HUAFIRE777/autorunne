@@ -18,7 +18,7 @@ def run(
 ) -> dict:
     repo_root = detect_repo_root(target) or target
     if not (repo_root / ".git").exists():
-        raise RuntimeError("autorunne hermes-task must run inside an existing git repository")
+        raise RuntimeError("autorunne hermes-task needs a Git repository first. ⏰ Run `git init` first, then rerun `autorunne hermes-task`.")
 
     open_result = open_cmd.run(repo_root)
     start_result = start_cmd.run(repo_root, task=task, next_action=next_action)

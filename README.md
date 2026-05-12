@@ -11,7 +11,7 @@ Autorunne 解决的是这个问题。
 
 它会在项目里维护一个 `.autorunne/` 工作区，把项目上下文、任务、决策、会话记录、推荐命令、验证证据和下一步整理成稳定文件。你仍然用自己熟悉的工具写代码，Autorunne 只负责把项目状态留在仓库本地。
 
-## 0.6.22 重点
+## 0.6.23 重点
 
 这一版是在 0.6.21 核心状态修复通过真实项目验证后，继续打磨日志洁净度：
 
@@ -52,33 +52,34 @@ pipx install autorunne
 curl -fsSL https://raw.githubusercontent.com/HUAFIRE777/autorunne/main/scripts/install.sh | bash
 ```
 
-当前公开版本：**0.6.22**
+当前公开版本：**0.6.23**
 
 ## 发布 GitHub 版本说说
 
 每次发新版后，可以用脚本自动发一条 GitHub Discussions 更新：
 
 ```bash
-python scripts/publish_github_update.py --version 0.6.22
+python scripts/publish_github_update.py --version 0.6.23
 ```
 
 先预览、不发布：
 
 ```bash
-python scripts/publish_github_update.py --version 0.6.22 --dry-run
+python scripts/publish_github_update.py --version 0.6.23 --dry-run
 ```
 
 脚本使用本机 `gh` 登录态，不保存 token。
 
 ## 30 秒上手
 
-进入你的项目仓库：
+进入你的项目仓库。新项目请先初始化 Git：
 
 ```bash
+git init
 autorunne open --with-vscode
 ```
 
-这个命令会创建或刷新 `.autorunne/`，并生成给不同 agent 看的入口文件。
+如果忘了 `git init`，Autorunne 会直接提醒你先执行这一步。`autorunne open` 会创建或刷新 `.autorunne/`，并生成给不同 agent 看的入口文件。
 
 之后日常使用很简单：
 
@@ -177,15 +178,16 @@ autorunne doctor
 7. [对外定位与销售话术](docs/Autorunne-对外定位与销售话术-ZH.md)
 8. [商业稳定性说明](docs/Autorunne-商业稳定性说明-ZH.md)
 9. [0.6.20 PyPI/GitHub 同步发布说明](docs/Autorunne-Release-Notes-0.6.20-ZH.md)
-10. [0.6.22 workspace open 日志洁净度打磨](docs/Autorunne-Release-Notes-0.6.22-ZH.md)
-11. [0.6.21 finish next_product_task 回退修复](docs/Autorunne-Release-Notes-0.6.21-ZH.md)
+10. [0.6.23 git init 新手提醒](docs/Autorunne-Release-Notes-0.6.23-ZH.md)
+11. [0.6.22 workspace open 日志洁净度打磨](docs/Autorunne-Release-Notes-0.6.22-ZH.md)
+12. [0.6.21 finish next_product_task 回退修复](docs/Autorunne-Release-Notes-0.6.21-ZH.md)
 12. [0.6.16 状态可视化发布说明](docs/Autorunne-Release-Notes-0.6.16-ZH.md)
 12. [与大模型开发对接说明](docs/Autorunne-LLM-Integration-ZH.md)
 13. [English usage guide](docs/Autorunne-Usage-EN.md)
 
 ## 当前阶段
 
-0.6.22 已完成 GitHub Release、PyPI、服务器运行环境和真实课程项目 smoke test 验证。它适合做公开演示、课程教学、个人项目和早期客户交付流程验证。
+0.6.23 在 0.6.22 稳定交接基线上增加了 `git init` 新手提醒，适合做公开演示、课程教学、个人项目和早期客户交付流程验证。
 
 更准确地说：Autorunne 现在是一个可持续使用的 Beta 工作流层。它不是最终企业平台，但已经足够支撑真实项目里的“接着做”。
 

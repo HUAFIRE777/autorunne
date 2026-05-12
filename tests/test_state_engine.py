@@ -5,6 +5,7 @@ from pathlib import Path
 
 from typer.testing import CliRunner
 
+from autorunne import __version__
 from autorunne.cli import app
 
 runner = CliRunner()
@@ -196,7 +197,7 @@ def test_repeated_open_does_not_duplicate_identical_resume_or_integration_logs(p
     # Simulate a real agent handoff where an integration refresh/noise entry can
     # sit between two otherwise identical open auto-resume events.
     skill_path = python_repo / ".agents" / "skills" / "autorunne-workflow" / "SKILL.md"
-    skill_path.write_text(skill_path.read_text(encoding="utf-8").replace("version: 0.6.22", "version: 0.6.0"), encoding="utf-8")
+    skill_path.write_text(skill_path.read_text(encoding="utf-8").replace(f"version: {__version__}", "version: 0.6.0"), encoding="utf-8")
     _run_in(python_repo, ["open"])
     _run_in(python_repo, ["open"])
 

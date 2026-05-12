@@ -86,6 +86,14 @@ def _maybe_print_update_notice(repo_root: Path | None = None) -> None:
         console.print(notice)
 
 
+def _run_or_exit(action):
+    try:
+        return action()
+    except RuntimeError as exc:
+        console.print(f"⚠️  {exc}")
+        raise typer.Exit(1) from exc
+
+
 @app.command()
 def version():
     """Print the installed Autorunne package version."""
@@ -141,7 +149,7 @@ def init(
     with_vscode: bool = typer.Option(False, "--with-vscode", help="Also create VS Code auto-sync integration."),
 ):
     """Initialize Autorunne files in a git repository."""
-    result = init_cmd.run(_target(path), with_vscode=with_vscode)
+    result = _run_or_exit(lambda: init_cmd.run(_target(path), with_vscode=with_vscode))
     console.print(f"Initialized Autorunne in [bold]{result['repo_root']}[/bold]")
     console.print(f"Local git exclude updated: {result['exclude_path']}")
     console.print(f"Next action: {result['scan']['next_action']}")
@@ -156,7 +164,7 @@ def adopt(
     with_vscode: bool = typer.Option(False, "--with-vscode", help="Also create VS Code auto-sync integration."),
 ):
     """Adopt an existing repository into Autorunne."""
-    result = adopt_cmd.run(_target(path), with_vscode=with_vscode)
+    result = _run_or_exit(lambda: adopt_cmd.run(_target(path), with_vscode=with_vscode))
     console.print(f"Adopted repository: [bold]{result['repo_root']}[/bold]")
     console.print(f"Detected stack: {', '.join(result['scan']['stack'])}")
     console.print(f"Detected framework: {', '.join(result['scan']['framework'])}")
@@ -172,7 +180,7 @@ def open(
     with_vscode: bool = typer.Option(False, "--with-vscode", help="Also install VS Code folder-open automation."),
 ):
     """Auto-bootstrap or resume a repo so the agent enters a working state immediately."""
-    result = open_cmd.run(_target(path), with_vscode=with_vscode)
+    result = _run_or_exit(lambda: open_cmd.run(_target(path), with_vscode=with_vscode))
     console.print(f"Autorunne {result['action']}: [bold]{result['repo_root']}[/bold]")
     console.print(f"Detected stack: {', '.join(result['scan']['stack'])}")
     console.print(f"Project phase: {result['scan']['project_phase']}")
@@ -190,7 +198,7 @@ def migrate(
     note: str | None = typer.Option(None, help="Optional migration note to append"),
 ):
     """Convert a legacy markdown-only workspace into a state-backed workspace."""
-    result = migrate_cmd.run(_target(path), note=note)
+    result = _run_or_exit(lambda: migrate_cmd.run(_target(path), note=note))
     if result["migrated"]:
         console.print(f"Migrated Autorunne workspace in [bold]{result['repo_root']}[/bold]")
         console.print(f"Next action: {result['next_action']}")
@@ -202,7 +210,7 @@ def migrate(
 @app.command()
 def render(path: str | None = typer.Option(None, help="Target repository path")):
     """Rebuild rendered views from `.autorunne/state/*`."""
-    result = render_cmd.run(_target(path))
+    result = _run_or_exit(lambda: render_cmd.run(_target(path)))
     console.print(f"Rendered views for [bold]{result['repo_root']}[/bold]")
 
 
@@ -213,7 +221,7 @@ def integrate(
     scope: str = typer.Option("repo", help="repo or user"),
 ):
     """Install repo/user integration files and wrappers."""
-    result = integrate_cmd.run(_target(path), tool=tool, scope=scope)
+    result = _run_or_exit(lambda: integrate_cmd.run(_target(path), tool=tool, scope=scope))
     console.print(f"Installed integrations ({result['scope']}): {', '.join(result['tools'])}")
     if result.get("wrappers"):
         console.print(f"Wrappers: {', '.join(result['wrappers'])}")
@@ -225,7 +233,7 @@ def show(
     section: str = typer.Option("all", help="current, tasks, decisions, sessions, events, or all"),
 ):
     """Show a structured slice of Autorunne state."""
-    result = show_cmd.run(_target(path), section=section)
+    result = _run_or_exit(lambda: show_cmd.run(_target(path), section=section))
     console.print(result["data"])
 
 
@@ -235,7 +243,7 @@ def history(
     limit: int = typer.Option(20, min=1, help="How many session entries to show."),
 ):
     """Show recent session history from state."""
-    result = history_cmd.run(_target(path), limit=limit)
+    result = _run_or_exit(lambda: history_cmd.run(_target(path), limit=limit))
     console.print(result["items"])
 
 
@@ -246,7 +254,7 @@ def trace(
     event_type: str | None = typer.Option(None, "--event-type", help="Optional event type filter."),
 ):
     """Show recent state events."""
-    result = trace_cmd.run(_target(path), limit=limit, event_type=event_type)
+    result = _run_or_exit(lambda: trace_cmd.run(_target(path), limit=limit, event_type=event_type))
     console.print(result["items"])
 
 
@@ -260,7 +268,7 @@ def record(
     path: str | None = typer.Option(None, help="Target repository path"),
 ):
     """Record a manual state note without running a sync or finish."""
-    result = record_cmd.run(_target(path), summary=summary, next_action=next, task=task, decision=decision, event_type=event_type)
+    result = _run_or_exit(lambda: record_cmd.run(_target(path), summary=summary, next_action=next, task=task, decision=decision, event_type=event_type))
     console.print(f"Recorded: {result['summary']}")
     console.print(f"Next action: {result['next_action']}")
     if result.get("decision"):
@@ -274,7 +282,7 @@ def task_add(
     path: str | None = typer.Option(None, help="Target repository path"),
 ):
     """Add an explicit task item to the state workspace."""
-    result = task_cmd.add(_target(path), text=text, section=section)
+    result = _run_or_exit(lambda: task_cmd.add(_target(path), text=text, section=section))
     console.print(f"Added task: {result['text']}")
     console.print(f"Section: {result['section']}")
 
@@ -286,7 +294,7 @@ def task_done(
     path: str | None = typer.Option(None, help="Target repository path"),
 ):
     """Mark a task as completed and move it into completed state."""
-    result = task_cmd.done(_target(path), match=match, section=section)
+    result = _run_or_exit(lambda: task_cmd.done(_target(path), match=match, section=section))
     console.print(f"Completed task: {result['matched']}")
     console.print(f"From section: {result.get('from_section', section)}")
 
@@ -298,7 +306,7 @@ def task_remove(
     path: str | None = typer.Option(None, help="Target repository path"),
 ):
     """Remove a task from the chosen state section."""
-    result = task_cmd.remove(_target(path), match=match, section=section)
+    result = _run_or_exit(lambda: task_cmd.remove(_target(path), match=match, section=section))
     console.print(f"Removed task: {result['matched']}")
     console.print(f"From section: {result.get('from_section', section)}")
 
@@ -309,7 +317,7 @@ def sync(
     note: str | None = typer.Option(None, help="Optional session note to append"),
 ):
     """Refresh Autorunne state."""
-    result = sync_cmd.run(_target(path), note=note)
+    result = _run_or_exit(lambda: sync_cmd.run(_target(path), note=note))
     console.print(f"Synced Autorunne in [bold]{result['repo_root']}[/bold]")
     console.print(f"Next action: {result['scan']['next_action']}")
     _maybe_print_update_notice(Path(result["repo_root"]))
@@ -322,7 +330,7 @@ def start(
     path: str | None = typer.Option(None, help="Target repository path"),
 ):
     """Start a new focused task slice."""
-    result = start_cmd.run(_target(path), task=task, next_action=next)
+    result = _run_or_exit(lambda: start_cmd.run(_target(path), task=task, next_action=next))
     console.print(f"Started: {result['task']}")
     console.print(f"Next action: {result['next_action']}")
 
@@ -337,12 +345,14 @@ def checkpoint(
 ):
     """Save progress without closing the current task."""
     try:
-        result = checkpoint_cmd.run(
-            _target(path),
-            summary=summary,
-            next_action=next,
-            validation_command=validate,
-            skip_validation=no_validate,
+        result = _run_or_exit(
+            lambda: checkpoint_cmd.run(
+                _target(path),
+                summary=summary,
+                next_action=next,
+                validation_command=validate,
+                skip_validation=no_validate,
+            )
         )
     except checkpoint_cmd.FinishValidationError as exc:
         console.print(f"Validation failed: {exc.command}")
@@ -367,14 +377,16 @@ def finish(
 ):
     """Record a finished slice and set the next action."""
     try:
-        result = finish_cmd.run(
-            _target(path),
-            summary=summary,
-            next_action=next,
-            task_match=task,
-            decision=decision,
-            validation_command=validate,
-            skip_validation=no_validate,
+        result = _run_or_exit(
+            lambda: finish_cmd.run(
+                _target(path),
+                summary=summary,
+                next_action=next,
+                task_match=task,
+                decision=decision,
+                validation_command=validate,
+                skip_validation=no_validate,
+            )
         )
     except finish_cmd.FinishValidationError as exc:
         console.print(f"Validation failed: {exc.command}")
@@ -399,7 +411,7 @@ def auto_finish(
     path: str | None = typer.Option(None, help="Target repository path"),
 ):
     """Auto-close the active task if a wrapper session ended with meaningful changes."""
-    result = auto_finish_cmd.run(_target(path), source=source)
+    result = _run_or_exit(lambda: auto_finish_cmd.run(_target(path), source=source))
     if not result.get("finished"):
         console.print(f"Auto-finish skipped: {result['reason']}")
         raise typer.Exit(0)
@@ -417,7 +429,7 @@ def watch(
     interval: float = typer.Option(1.0, help="Polling interval in seconds."),
 ):
     """Watch the repo for local file changes and auto-record Autorunne progress."""
-    result = watch_cmd.run(_target(path), duration=duration, interval=interval)
+    result = _run_or_exit(lambda: watch_cmd.run(_target(path), duration=duration, interval=interval))
     if result["changes_detected"]:
         console.print(f"Detected change(s): {result['changes_detected']}")
         console.print(f"Last sync repo: {result['last_sync']}")
@@ -436,7 +448,7 @@ def daemon(
     max_syncs: int = typer.Option(0, min=0, help="Stop after this many auto-syncs. Use 0 to keep the loop only time-bound."),
 ):
     """Run an open-first background loop that bootstraps/resumes then auto-records changes."""
-    result = daemon_cmd.run(_target(path), duration=duration, interval=interval, max_syncs=max_syncs or None)
+    result = _run_or_exit(lambda: daemon_cmd.run(_target(path), duration=duration, interval=interval, max_syncs=max_syncs or None))
     console.print(f"Autorunne daemon started from: {result['action']}")
     console.print(f"Ticks: {result['ticks']}")
     console.print(f"Auto-syncs: {result['syncs']}")
@@ -457,7 +469,7 @@ def hermes_task(
     path: str | None = typer.Option(None, help="Target repository path"),
 ):
     """Bridge a Hermes chat task into local Autorunne workflow files."""
-    result = hermes_task_cmd.run(_target(path), task=task, next_action=next, context=context, decision=decision)
+    result = _run_or_exit(lambda: hermes_task_cmd.run(_target(path), task=task, next_action=next, context=context, decision=decision))
     console.print(f"Hermes task captured: {result['task']}")
     console.print(f"Workspace action: {result['workspace_action']}")
     console.print(f"Next action: {result['next_action']}")
@@ -475,13 +487,15 @@ def ingest(
     path: str | None = typer.Option(None, help="Target repository path"),
 ):
     """Capture a natural-language task from direct Codex/Hermes/Claude Code use while Autorunne stays in the background."""
-    result = ingest_cmd.run(
-        _target(path),
-        task=task,
-        source=source,
-        next_action=next,
-        context=context,
-        decision=decision,
+    result = _run_or_exit(
+        lambda: ingest_cmd.run(
+            _target(path),
+            task=task,
+            source=source,
+            next_action=next,
+            context=context,
+            decision=decision,
+        )
     )
     console.print(f"Task captured from {result['source']}: {result['task']}")
     console.print(f"Workspace action: {result['workspace_action']}")
@@ -493,7 +507,7 @@ def ingest(
 @app.command()
 def status(path: str | None = typer.Option(None, help="Target repository path")):
     """Show Autorunne health and next action."""
-    result = status_cmd.run(_target(path))
+    result = _run_or_exit(lambda: status_cmd.run(_target(path)))
     table = Table(title="Autorunne Status")
     table.add_column("Field")
     table.add_column("Value")
@@ -570,7 +584,7 @@ def export_command(
     output_name: str | None = typer.Option(None, help="Optional export directory name"),
 ):
     """Create a clean release copy without Autorunne files."""
-    result = export_cmd.run(_target(path), output_name=output_name)
+    result = _run_or_exit(lambda: export_cmd.run(_target(path), output_name=output_name))
     console.print(f"Exported clean copy to [bold]{result['exported_path']}[/bold]")
 
 
@@ -581,7 +595,7 @@ def release(
     skip_build: bool = typer.Option(False, help="Skip building wheel/sdist assets."),
 ):
     """Create a formal release bundle with a clean export and release notes."""
-    result = release_cmd.run(_target(path), version=version, skip_build=skip_build)
+    result = _run_or_exit(lambda: release_cmd.run(_target(path), version=version, skip_build=skip_build))
     console.print(f"Release bundle created: [bold]{result['release_dir']}[/bold]")
     console.print(f"Release notes: {result['notes_path']}")
     console.print(f"Manifest: {result['manifest_path']}")
@@ -595,7 +609,7 @@ def hooks(
     with_pre_commit: bool = typer.Option(False, "--with-pre-commit", help="Also install a pre-commit hook and config."),
 ):
     """Install lightweight git hooks that auto-sync on checkout/merge."""
-    result = hooks_cmd.run(_target(path), with_pre_commit=with_pre_commit)
+    result = _run_or_exit(lambda: hooks_cmd.run(_target(path), with_pre_commit=with_pre_commit))
     for hook in result["hooks"]:
         console.print(f"Installed hook: {hook}")
     if result.get("precommit_config"):
@@ -605,7 +619,7 @@ def hooks(
 @app.command("vscode")
 def vscode_command(path: str | None = typer.Option(None, help="Target repository path")):
     """Create VS Code integration that auto-syncs on folder open."""
-    result = vscode_cmd.run(_target(path))
+    result = _run_or_exit(lambda: vscode_cmd.run(_target(path)))
     console.print(f"VS Code tasks: {result['tasks_path']}")
     console.print(f"VS Code settings: {result['settings_path']}")
 

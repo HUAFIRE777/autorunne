@@ -100,6 +100,19 @@ def test_sync_migrates_old_config_version_without_deleting_user_state(python_rep
         assert path.exists(), f"expected sync to preserve {path}"
 
 
+def test_non_git_workspace_prints_git_init_reminder_without_traceback(tmp_path: Path):
+    project = tmp_path / "fresh-project"
+    project.mkdir()
+
+    result = _run_in(project, ["open"])
+
+    assert result.exit_code == 1
+    assert "⏰" in result.stdout
+    assert "git init" in result.stdout
+    assert "autorunne open" in result.stdout
+    assert "Traceback" not in result.stdout
+
+
 def test_init_creates_workflow_files(git_repo: Path):
     result = _run_in(git_repo, ["init"])
     assert result.exit_code == 0

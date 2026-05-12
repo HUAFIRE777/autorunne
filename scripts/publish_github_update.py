@@ -102,6 +102,19 @@ def default_body(version: str) -> str:
     release_url = f"https://github.com/HUAFIRE777/autorunne/releases/tag/v{version}"
     pypi_url = f"https://pypi.org/project/autorunne/{version}/"
 
+    if version == "0.6.23":
+        intro = """Autorunne 0.6.23 发布了。
+
+这版补了一个新手最容易忘的小提醒：新项目要先 `git init`，再运行 Autorunne。"""
+        bullets = """
+- 非 Git 目录运行 autorunne open/init 等命令时，会直接提醒先执行 git init
+- CLI 会干净退出，不再给新手看一大段 traceback
+- README 30 秒上手里也明确写了 git init → autorunne open
+- 继续保留 0.6.22 的状态安全和 open 日志洁净度
+""".strip()
+        why = """简单说：第一次用 Autorunne 时更不容易卡住。"""
+        return f"""{intro}\n\n{bullets}\n\n{why}\n\n安装或更新：\n\n```bash\npipx upgrade autorunne --pip-args=\"--no-cache-dir -i https://pypi.org/simple\"\n```\n\n新安装：\n\n```bash\npipx install autorunne --pip-args=\"--no-cache-dir -i https://pypi.org/simple\"\n```\n\n检查版本：\n\n```bash\nautorunne --version\n```\n\nRelease: {release_url}\nPyPI: {pypi_url}\n""".strip()
+
     if version == "0.6.22":
         intro = """Autorunne 0.6.22 发布了。
 
@@ -182,6 +195,7 @@ def main() -> int:
 
     version = args.version.removeprefix("v")
     default_titles = {
+        "0.6.23": "Autorunne 0.6.23 发布：新项目先 git init 的友好提醒",
         "0.6.22": "Autorunne 0.6.22 发布：workspace open 日志更干净",
         "0.6.21": "Autorunne 0.6.21 发布：完成任务后不再把它当下一步",
         "0.6.20": "Autorunne 0.6.20 发布：更干净的 AI 项目交接",

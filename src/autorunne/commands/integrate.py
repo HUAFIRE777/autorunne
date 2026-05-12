@@ -11,7 +11,7 @@ from autorunne.core.state_engine import bootstrap_workspace, record_integration,
 def run(target: Path, *, tool: str = "all", scope: str = "repo") -> dict:
     repo_root = detect_repo_root(target) or target
     if scope == "repo" and not (repo_root / ".git").exists():
-        raise RuntimeError("autorunne integrate --scope repo must run inside an existing git repository")
+        raise RuntimeError("autorunne integrate --scope repo needs a Git repository first. ⏰ Run `git init` first, then rerun `autorunne integrate`.")
     if scope == "repo" and not workflow_exists(repo_root):
         scan = scan_repo(repo_root)
         scan["next_action"] = recommend_next_action(scan)

@@ -55,7 +55,7 @@ def run(
 ) -> dict:
     repo_root = detect_repo_root(target) or target
     if not (repo_root / ".git").exists():
-        raise RuntimeError("autorunne finish must run inside an existing git repository")
+        raise RuntimeError("autorunne finish needs a Git repository first. ⏰ Run `git init` first, then rerun `autorunne finish`.")
 
     clean_summary = summary.strip()
     resolved_next_action = next_action.strip() if next_action else _read_current_next_action(repo_root)

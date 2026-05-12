@@ -11,7 +11,7 @@ from autorunne.core.state_engine import sync_workspace
 def run(target: Path, note: str | None = None, action: str = "workspace_synced") -> dict:
     repo_root = detect_repo_root(target) or target
     if not (repo_root / ".git").exists():
-        raise RuntimeError("autorunne sync must run inside an existing git repository")
+        raise RuntimeError("autorunne sync needs a Git repository first. ⏰ Run `git init` first, then rerun `autorunne sync`.")
     migrate_config(repo_root)
     scan = scan_repo(repo_root)
     scan["next_action"] = recommend_next_action(scan)
