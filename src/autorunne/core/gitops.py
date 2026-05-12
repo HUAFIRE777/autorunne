@@ -36,6 +36,32 @@ def is_git_repo(start: Path) -> bool:
     return detect_repo_root(start) is not None
 
 
+def ensure_git_repo(start: Path) -> tuple[Path, bool]:
+    """Return the git repo root, auto-initializing one when needed.
+
+    Autorunne is repo-local and relies on Git metadata for root detection,
+    status, and handoff state. For new projects, the friendliest behavior is
+    to create the local Git repository automatically instead of asking users to
+    remember `git init` before their first `autorunne open` / `init` / `ingest`.
+    """
+    existing = detect_repo_root(start)
+    if existing is not None:
+        return existing, False
+
+    repo_root = start.expanduser().resolve()
+    repo_root.mkdir(parents=True, exist_ok=True)
+    result = subprocess.run(
+        ["git", "init"],
+        cwd=repo_root,
+        text=True,
+        capture_output=True,
+    )
+    if result.returncode != 0:
+        message = result.stderr.strip() or result.stdout.strip() or "git init failed"
+        raise GitError(f"autorunne could not initialize a Git repository at {repo_root}: {message}")
+    return repo_root, True
+
+
 def ensure_local_exclude(repo_root: Path, pattern: str = ".autorunne/") -> Path:
     exclude_path = repo_root / ".git" / "info" / "exclude"
     exclude_path.parent.mkdir(parents=True, exist_ok=True)

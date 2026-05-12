@@ -4,7 +4,7 @@ from pathlib import Path
 
 from autorunne.commands import open as open_cmd
 from autorunne.commands import start as start_cmd
-from autorunne.core.gitops import detect_repo_root
+from autorunne.core.gitops import ensure_git_repo
 from autorunne.core.state_engine import record_task_ingress
 
 
@@ -16,9 +16,7 @@ def run(
     context: str | None = None,
     decision: str | None = None,
 ) -> dict:
-    repo_root = detect_repo_root(target) or target
-    if not (repo_root / ".git").exists():
-        raise RuntimeError("autorunne hermes-task needs a Git repository first. ⏰ Run `git init` first, then rerun `autorunne hermes-task`.")
+    repo_root, initialized_git = ensure_git_repo(target)
 
     open_result = open_cmd.run(repo_root)
     start_result = start_cmd.run(repo_root, task=task, next_action=next_action)
@@ -41,4 +39,5 @@ def run(
         "workspace_action": open_result["action"],
         "context": context.strip() if context and context.strip() else None,
         "decision": decision.strip() if decision and decision.strip() else None,
+        "initialized_git": initialized_git or open_result.get("initialized_git", False),
     }

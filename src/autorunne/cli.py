@@ -94,6 +94,11 @@ def _run_or_exit(action):
         raise typer.Exit(1) from exc
 
 
+def _print_git_initialized(result: dict) -> None:
+    if result.get("initialized_git"):
+        console.print("Git repository initialized automatically (no manual `git init` needed).")
+
+
 @app.command()
 def version():
     """Print the installed Autorunne package version."""
@@ -150,6 +155,7 @@ def init(
 ):
     """Initialize Autorunne files in a git repository."""
     result = _run_or_exit(lambda: init_cmd.run(_target(path), with_vscode=with_vscode))
+    _print_git_initialized(result)
     console.print(f"Initialized Autorunne in [bold]{result['repo_root']}[/bold]")
     console.print(f"Local git exclude updated: {result['exclude_path']}")
     console.print(f"Next action: {result['scan']['next_action']}")
@@ -165,6 +171,7 @@ def adopt(
 ):
     """Adopt an existing repository into Autorunne."""
     result = _run_or_exit(lambda: adopt_cmd.run(_target(path), with_vscode=with_vscode))
+    _print_git_initialized(result)
     console.print(f"Adopted repository: [bold]{result['repo_root']}[/bold]")
     console.print(f"Detected stack: {', '.join(result['scan']['stack'])}")
     console.print(f"Detected framework: {', '.join(result['scan']['framework'])}")
@@ -181,6 +188,7 @@ def open(
 ):
     """Auto-bootstrap or resume a repo so the agent enters a working state immediately."""
     result = _run_or_exit(lambda: open_cmd.run(_target(path), with_vscode=with_vscode))
+    _print_git_initialized(result)
     console.print(f"Autorunne {result['action']}: [bold]{result['repo_root']}[/bold]")
     console.print(f"Detected stack: {', '.join(result['scan']['stack'])}")
     console.print(f"Project phase: {result['scan']['project_phase']}")
@@ -470,6 +478,7 @@ def hermes_task(
 ):
     """Bridge a Hermes chat task into local Autorunne workflow files."""
     result = _run_or_exit(lambda: hermes_task_cmd.run(_target(path), task=task, next_action=next, context=context, decision=decision))
+    _print_git_initialized(result)
     console.print(f"Hermes task captured: {result['task']}")
     console.print(f"Workspace action: {result['workspace_action']}")
     console.print(f"Next action: {result['next_action']}")
@@ -497,6 +506,7 @@ def ingest(
             decision=decision,
         )
     )
+    _print_git_initialized(result)
     console.print(f"Task captured from {result['source']}: {result['task']}")
     console.print(f"Workspace action: {result['workspace_action']}")
     console.print(f"Next action: {result['next_action']}")

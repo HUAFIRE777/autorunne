@@ -2,6 +2,19 @@
 
 All notable changes to Autorunne are documented here.
 
+## 0.6.24 - 2026-05-12
+
+### Improved
+- Fresh project entry commands now auto-initialize a local Git repository instead of requiring users to run `git init` manually first.
+- `autorunne open`, `init`, `adopt`, `ingest`, and `hermes-task` now create `.git/` when no repository is detected, then continue bootstrapping Autorunne normally.
+- Existing Git repositories are unchanged; Autorunne still uses the detected repo root and preserves the existing handoff/state workflow.
+
+### Documentation
+- The 30-second quickstart now shows only `autorunne open --with-vscode`; Git initialization is handled automatically.
+
+### Verification
+- Added CLI regression coverage for fresh non-Git workspaces to ensure `open` and `ingest` create `.git/`, create `.autorunne/`, and do not show a traceback.
+
 ## 0.6.23 - 2026-05-12
 
 ### Improved

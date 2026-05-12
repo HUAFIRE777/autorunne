@@ -100,16 +100,31 @@ def test_sync_migrates_old_config_version_without_deleting_user_state(python_rep
         assert path.exists(), f"expected sync to preserve {path}"
 
 
-def test_non_git_workspace_prints_git_init_reminder_without_traceback(tmp_path: Path):
+def test_open_auto_initializes_git_for_fresh_workspace_without_traceback(tmp_path: Path):
     project = tmp_path / "fresh-project"
     project.mkdir()
 
     result = _run_in(project, ["open"])
 
-    assert result.exit_code == 1
-    assert "⏰" in result.stdout
-    assert "git init" in result.stdout
-    assert "autorunne open" in result.stdout
+    assert result.exit_code == 0
+    assert (project / ".git").exists()
+    assert (project / ".autorunne" / "state" / "current.json").exists()
+    assert "Git repository initialized automatically" in result.stdout
+    assert "no manual `git init` needed" in result.stdout
+    assert "Traceback" not in result.stdout
+
+
+def test_ingest_auto_initializes_git_for_fresh_workspace(tmp_path: Path):
+    project = tmp_path / "fresh-ingest"
+    project.mkdir()
+
+    result = _run_in(project, ["ingest", "--source", "codex", "--task", "Build the first slice"])
+
+    assert result.exit_code == 0
+    assert (project / ".git").exists()
+    assert (project / ".autorunne" / "state" / "current.json").exists()
+    assert "Git repository initialized automatically" in result.stdout
+    assert "Task captured from codex" in result.stdout
     assert "Traceback" not in result.stdout
 
 

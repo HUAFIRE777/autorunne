@@ -102,6 +102,19 @@ def default_body(version: str) -> str:
     release_url = f"https://github.com/HUAFIRE777/autorunne/releases/tag/v{version}"
     pypi_url = f"https://pypi.org/project/autorunne/{version}/"
 
+    if version == "0.6.24":
+        intro = """Autorunne 0.6.24 发布了。
+
+这版把新项目上手再简化一步：用户不需要先手动 `git init`，直接运行 `autorunne open` 就可以。"""
+        bullets = """
+- 新目录运行 autorunne open 会自动创建本地 Git 仓库
+- autorunne init/adopt/ingest/hermes-task 也支持自动初始化 Git
+- 已有 Git 仓库行为不变，继续保留原来的 repo-local 工作流
+- 继续保留 0.6.22 的状态安全和 open 日志洁净度
+""".strip()
+        why = """简单说：新用户只需要打开项目，不需要先懂 Git 初始化这一步。"""
+        return f"""{intro}\n\n{bullets}\n\n{why}\n\n安装或更新：\n\n```bash\npipx upgrade autorunne --pip-args=\"--no-cache-dir -i https://pypi.org/simple\"\n```\n\n新安装：\n\n```bash\npipx install autorunne --pip-args=\"--no-cache-dir -i https://pypi.org/simple\"\n```\n\n检查版本：\n\n```bash\nautorunne --version\n```\n\nRelease: {release_url}\nPyPI: {pypi_url}\n""".strip()
+
     if version == "0.6.23":
         intro = """Autorunne 0.6.23 发布了。
 
@@ -195,6 +208,7 @@ def main() -> int:
 
     version = args.version.removeprefix("v")
     default_titles = {
+        "0.6.24": "Autorunne 0.6.24 发布：新项目自动 Git 初始化",
         "0.6.23": "Autorunne 0.6.23 发布：新项目先 git init 的友好提醒",
         "0.6.22": "Autorunne 0.6.22 发布：workspace open 日志更干净",
         "0.6.21": "Autorunne 0.6.21 发布：完成任务后不再把它当下一步",

@@ -4,7 +4,7 @@ from pathlib import Path
 
 from autorunne.commands import adopt as adopt_cmd
 from autorunne.commands import sync as sync_cmd
-from autorunne.core.gitops import detect_repo_root
+from autorunne.core.gitops import ensure_git_repo
 from autorunne.core.paths import view_file
 from autorunne.core.integrations import install_integrations
 from autorunne.core.state_engine import record_integration, workflow_exists
@@ -12,9 +12,7 @@ from autorunne.core.vscode import install_vscode_integration
 
 
 def run(target: Path, with_vscode: bool = False) -> dict:
-    repo_root = detect_repo_root(target) or target
-    if not (repo_root / ".git").exists():
-        raise RuntimeError("autorunne open needs a Git repository first. ⏰ Run `git init` first, then rerun `autorunne open`.")
+    repo_root, initialized_git = ensure_git_repo(target)
 
     existing = workflow_exists(repo_root)
     if existing:
@@ -39,4 +37,5 @@ def run(target: Path, with_vscode: bool = False) -> dict:
         "workflow_exists": existing,
         "vscode": vscode_result,
         "integration": integration,
+        "initialized_git": initialized_git,
     }

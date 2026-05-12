@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from autorunne.core.gitops import detect_repo_root, ensure_local_exclude
+from autorunne.core.gitops import ensure_git_repo, ensure_local_exclude
 from autorunne.core.paths import save_config, view_file
 from autorunne.core.scanner import recommend_next_action, scan_repo
 from autorunne.core.state_engine import bootstrap_workspace, record_integration
@@ -12,10 +12,7 @@ from autorunne.models.config import WorkflowConfig
 
 
 def run(target: Path, with_vscode: bool = False) -> dict:
-    repo_root = detect_repo_root(target) or target
-    repo_root.mkdir(parents=True, exist_ok=True)
-    if not (repo_root / ".git").exists():
-        raise RuntimeError("autorunne init needs a Git repository first. ⏰ Run `git init` first, then rerun `autorunne init`.")
+    repo_root, initialized_git = ensure_git_repo(target)
     scan = scan_repo(repo_root)
     scan["next_action"] = recommend_next_action(scan)
     bootstrap_workspace(repo_root, scan, action="workspace_bootstrapped")
@@ -29,6 +26,7 @@ def run(target: Path, with_vscode: bool = False) -> dict:
         "scan": scan,
         "start_here_path": str(view_file(repo_root, "START_HERE.md")),
         "integration": integration,
+        "initialized_git": initialized_git,
     }
     if with_vscode:
         result["vscode"] = install_vscode_integration(repo_root)
