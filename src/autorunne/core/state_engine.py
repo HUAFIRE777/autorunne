@@ -148,14 +148,18 @@ def _is_workflow_follow_up_text(text: str) -> bool:
     lowered = text.strip().lower()
     workflow_terms = (
         "workflow",
-        "autorunne",
+        "workflow follow-up",
         "status.md",
         "start_here.md",
         "next_action",
         "render",
         "renderer",
         "validation evidence",
+        "public baseline",
+        "current public baseline",
         "流程",
+        "交接",
+        "基线",
         "状态视图",
         "验证证据",
     )
@@ -174,6 +178,60 @@ def _first_pending_product_task(state: dict[str, Any], *, exclude_texts: list[st
                 continue
             return text
     return None
+
+
+def _completed_task_texts(state: dict[str, Any]) -> set[str]:
+    return {
+        (item.get("text") or "").strip()
+        for item in state.get("tasks", {}).get("completed", [])
+        if (item.get("text") or "").strip()
+    }
+
+
+def _clean_next_slots(state: dict[str, Any]) -> bool:
+    """Repair stale handoff focus fields before rendering user-facing views.
+
+    Older workspaces can keep a completed task or workflow housekeeping note in
+    `current.next_product_task`. Keep product and workflow lanes separated so the
+    next agent sees a real product task, or `无` when none exists.
+    """
+    current = state.get("current", {})
+    before = (current.get("next_action"), current.get("next_product_task"), current.get("workflow_follow_up"))
+
+    completed = _completed_task_texts(state)
+    current_product = (current.get("next_product_task") or "").strip()
+    current_next = (current.get("next_action") or "").strip()
+    workflow_follow_up = (current.get("workflow_follow_up") or "").strip()
+
+    workflow_candidates = []
+    for candidate in (workflow_follow_up, current_product, current_next):
+        clean = (candidate or "").strip()
+        if clean and clean != "无" and _is_workflow_follow_up_text(clean):
+            workflow_candidates.append(clean)
+    workflow_follow_up = workflow_candidates[0] if workflow_candidates else "无"
+
+    product = current_product
+    if current_next and current_next not in completed and not _is_workflow_follow_up_text(current_next):
+        product = current_next
+    elif not product or product in completed or _is_workflow_follow_up_text(product):
+        product = _first_pending_product_task(
+            state,
+            exclude_texts=[*completed, workflow_follow_up, current_next if _is_workflow_follow_up_text(current_next) else None],
+        )
+
+    current["next_product_task"] = product
+    current["workflow_follow_up"] = workflow_follow_up or "无"
+    if workflow_follow_up and workflow_follow_up != "无":
+        current["next_action"] = workflow_follow_up
+    elif product:
+        current["next_action"] = product
+    elif current_next and current_next not in completed:
+        current["next_action"] = current_next
+    else:
+        current["next_action"] = "确认下一个具体任务"
+
+    after = (current.get("next_action"), current.get("next_product_task"), current.get("workflow_follow_up"))
+    return before != after
 
 
 def _set_next_slots(
@@ -481,6 +539,9 @@ def save_workspace_state(repo_root: Path, state: dict[str, Any]) -> None:
 
 def render_views(repo_root: Path) -> dict[str, str]:
     state = load_workspace_state(repo_root)
+    if _clean_next_slots(state):
+        save_workspace_state(repo_root, state)
+        state = load_workspace_state(repo_root)
     rendered = render_view_bundle(state)
     write_rendered_views(repo_root, rendered)
     write_agent_compat_files(repo_root, render_agent_compat_bundle())

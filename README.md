@@ -11,16 +11,16 @@ Autorunne 解决的是这个问题。
 
 它会在项目里维护一个 `.autorunne/` 工作区，把项目上下文、任务、决策、会话记录、推荐命令、验证证据和下一步整理成稳定文件。你仍然用自己熟悉的工具写代码，Autorunne 只负责把项目状态留在仓库本地。
 
-## 0.6.24 重点
+## 0.6.25 重点
 
-这一版把新项目上手再简化一步：用户不需要先手动 `git init`。
+这一版继续打磨“下一轮 AI 接手时看到的状态”：不改 0.6.24 已稳定的自动 Git 初始化，只让交接视图更干净。
 
-- 在全新的普通文件夹里运行 `autorunne open`，Autorunne 会自动执行本地 `git init`。
-- `autorunne init`、`adopt`、`ingest` / `hermes-task` 也会自动初始化 Git 仓库。
-- 已经是 Git 仓库的项目不受影响，仍然按原来的 repo-local 工作流继续。
-- 0.6.22 的完成态安全和 open 日志去重继续保留。
+- 已完成的任务不会继续残留在 `Next product task`。
+- 发布基线、验证、状态刷新这类流程备注会放进 `Workflow follow-up`，不再混成产品任务。
+- `autorunne status` 会明确显示 `Autorunne state tracked by git`，避免把 `.autorunne/` 本地状态误解成“项目不是 Git 仓库”。
+- `.autorunne/` 仍然默认是本地交接状态，是否提交到 GitHub 由项目自己决定。
 
-简单说：新用户现在只需要进入项目目录运行 `autorunne open`，不用先记住 Git 初始化步骤。
+简单说：下一个 agent 打开项目时，更容易看清真正该做什么。
 
 ## 适合谁
 
@@ -52,20 +52,20 @@ pipx install autorunne
 curl -fsSL https://raw.githubusercontent.com/HUAFIRE777/autorunne/main/scripts/install.sh | bash
 ```
 
-当前公开版本：**0.6.24**
+当前公开版本：**0.6.25**
 
 ## 发布 GitHub 版本说说
 
 每次发新版后，可以用脚本自动发一条 GitHub Discussions 更新：
 
 ```bash
-python scripts/publish_github_update.py --version 0.6.24
+python scripts/publish_github_update.py --version 0.6.25
 ```
 
 先预览、不发布：
 
 ```bash
-python scripts/publish_github_update.py --version 0.6.24 --dry-run
+python scripts/publish_github_update.py --version 0.6.25 --dry-run
 ```
 
 脚本使用本机 `gh` 登录态，不保存 token。
@@ -177,17 +177,18 @@ autorunne doctor
 7. [对外定位与销售话术](docs/Autorunne-对外定位与销售话术-ZH.md)
 8. [商业稳定性说明](docs/Autorunne-商业稳定性说明-ZH.md)
 9. [0.6.20 PyPI/GitHub 同步发布说明](docs/Autorunne-Release-Notes-0.6.20-ZH.md)
-10. [0.6.24 自动 Git 初始化](docs/Autorunne-Release-Notes-0.6.24-ZH.md)
-11. [0.6.23 git init 新手提醒](docs/Autorunne-Release-Notes-0.6.23-ZH.md)
-12. [0.6.22 workspace open 日志洁净度打磨](docs/Autorunne-Release-Notes-0.6.22-ZH.md)
-13. [0.6.21 finish next_product_task 回退修复](docs/Autorunne-Release-Notes-0.6.21-ZH.md)
+10. [0.6.25 交接洁净度补丁](docs/Autorunne-Release-Notes-0.6.25-ZH.md)
+11. [0.6.24 自动 Git 初始化](docs/Autorunne-Release-Notes-0.6.24-ZH.md)
+12. [0.6.23 git init 新手提醒](docs/Autorunne-Release-Notes-0.6.23-ZH.md)
+13. [0.6.22 workspace open 日志洁净度打磨](docs/Autorunne-Release-Notes-0.6.22-ZH.md)
+14. [0.6.21 finish next_product_task 回退修复](docs/Autorunne-Release-Notes-0.6.21-ZH.md)
 12. [0.6.16 状态可视化发布说明](docs/Autorunne-Release-Notes-0.6.16-ZH.md)
 12. [与大模型开发对接说明](docs/Autorunne-LLM-Integration-ZH.md)
 13. [English usage guide](docs/Autorunne-Usage-EN.md)
 
 ## 当前阶段
 
-0.6.24 在 0.6.22 稳定交接基线上进一步降低新手门槛：新项目运行 `autorunne open` 会自动本地初始化 Git，适合做公开演示、课程教学、个人项目和早期客户交付流程验证。
+0.6.25 在 0.6.24 稳定入口上继续打磨交接洁净度：新项目仍然可以直接 `autorunne open`，同时下一轮 AI/agent 看到的 `Next product task` 和 `Workflow follow-up` 更不容易互相污染。
 
 更准确地说：Autorunne 现在是一个可持续使用的 Beta 工作流层。它不是最终企业平台，但已经足够支撑真实项目里的“接着做”。
 

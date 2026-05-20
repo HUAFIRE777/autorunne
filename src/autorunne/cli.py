@@ -562,7 +562,8 @@ def status(path: str | None = typer.Option(None, help="Target repository path"))
     table.add_row("Repo wrappers", wrappers)
     table.add_row("Missing files", ", ".join(result["missing"]) or "none")
     table.add_row("Next action", result["next_action"])
-    table.add_row("Tracked by git", str(result["workflow_tracked"]))
+    tracked_text = "yes" if result["workflow_tracked"] else "no (local-only handoff state)"
+    table.add_row("Autorunne state tracked by git", tracked_text)
     console.print(table)
     if user_summary:
         console.print(f"用户摘要：{user_summary.get('one_line', '')}")

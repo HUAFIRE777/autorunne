@@ -488,6 +488,44 @@ def test_next_action_view_splits_product_task_from_workflow_follow_up(python_rep
     assert "Workflow follow-up：Workflow follow-up: 把验证证据渲染到 STATUS.md" in status_view
 
 
+def test_render_cleans_completed_task_from_next_product_task(python_repo: Path):
+    _run_in(python_repo, ["adopt"])
+    state_root = python_repo / ".autorunne" / "state"
+    tasks_state = json.loads((state_root / "tasks.json").read_text(encoding="utf-8"))
+    current_state = json.loads((state_root / "current.json").read_text(encoding="utf-8"))
+
+    completed = "Implement 0.6.24 auto git init behavior, test it, publish GitHub/PyPI, and verify the installed CLI"
+    workflow_follow_up = "Use 0.6.24 as the current public baseline; new users can run autorunne open directly without manual git init"
+    product_task = "Verify a fresh repo in VS Code using the public pipx install autorunne path"
+
+    tasks_state["completed"].insert(0, {"text": completed, "status": "completed", "timestamp": "2026-05-12 13:53 UTC", "source": "test"})
+    tasks_state["next_up"] = [
+        {"text": workflow_follow_up, "status": "pending", "timestamp": "2026-05-20 00:00 UTC", "source": "test"},
+        {"text": product_task, "status": "pending", "timestamp": "2026-05-20 00:00 UTC", "source": "test"},
+    ]
+    current_state["active_task"] = None
+    current_state["last_action"] = "task_finished"
+    current_state["next_product_task"] = completed
+    current_state["next_action"] = workflow_follow_up
+    current_state["workflow_follow_up"] = "无"
+
+    (state_root / "tasks.json").write_text(json.dumps(tasks_state), encoding="utf-8")
+    (state_root / "current.json").write_text(json.dumps(current_state), encoding="utf-8")
+
+    result = _run_in(python_repo, ["render"])
+    assert result.exit_code == 0
+
+    current = json.loads((state_root / "current.json").read_text(encoding="utf-8"))
+    next_view = (python_repo / ".autorunne" / "views" / "NEXT_ACTION.md").read_text(encoding="utf-8")
+    status_view = (python_repo / ".autorunne" / "views" / "STATUS.md").read_text(encoding="utf-8")
+
+    assert current["next_product_task"] == product_task
+    assert current["workflow_follow_up"] == workflow_follow_up
+    assert completed not in next_view
+    assert f"Next product task：{product_task}" in status_view
+    assert f"Workflow follow-up：{workflow_follow_up}" in status_view
+
+
 def test_finish_does_not_keep_completed_task_as_next_product_task(python_repo: Path):
     finished_task = "Tiny frontend copy tweak to exercise AutoRunne 0.6.20 as the local development state memory layer"
     workflow_next = "Review AutoRunne 0.6.20 rendered STATUS and SESSION_LOG for this completed smoke slice"
@@ -688,6 +726,15 @@ def test_finish_clears_stale_in_progress_when_no_active_task_remains(python_repo
     assert "- [ ] Old stale task" in tasks_text
     assert "- [ ] Ship changelog" in tasks_text
     assert "none" in status_result.stdout.lower()
+
+
+def test_status_labels_workflow_git_tracking_clearly(python_repo: Path):
+    _run_in(python_repo, ["adopt"])
+    result = _run_in(python_repo, ["status"])
+    assert result.exit_code == 0
+    assert "Autorunne state tracked by git" in result.stdout
+    assert "Tracked by git" not in result.stdout
+    assert "local-only handoff state" in result.stdout
 
 
 def test_task_add_in_progress_sets_active_task_and_done_clears_it(python_repo: Path):

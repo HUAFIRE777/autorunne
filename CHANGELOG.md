@@ -2,6 +2,17 @@
 
 All notable changes to Autorunne are documented here.
 
+## 0.6.25 - 2026-05-20
+
+### Fixed
+- Render/status now clean stale completed tasks out of `current.next_product_task` before writing handoff views.
+- Workflow or release housekeeping notes such as public-baseline reminders are kept in `workflow_follow_up` instead of being shown as product work.
+- `autorunne status` now labels `.autorunne` Git tracking explicitly as `Autorunne state tracked by git`, with `no (local-only handoff state)` when the handoff state is intentionally local-only.
+
+### Verification
+- Added regression coverage for legacy state cleanup and the clearer status label.
+- Verified focused CLI tests, full CLI tests, full pytest, package build, Twine metadata, real-repo status, and fresh-workspace smoke tests before release.
+
 ## 0.6.24 - 2026-05-12
 
 ### Improved
