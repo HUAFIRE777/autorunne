@@ -7,7 +7,7 @@ from autorunne.core.paths import STATE_FILES, VIEW_FILES, snapshot_file, state_d
 from autorunne.core.state_engine import diagnose_handoff_consistency, legacy_workspace_exists, render_from_state, workflow_exists, workflow_needs_migration
 
 
-def run(target: Path) -> dict:
+def run(target: Path, *, handoff_only: bool = False) -> dict:
     repo_root = detect_repo_root(target) or target
     root = workflow_dir(repo_root)
     exclude_path = repo_root / ".git" / "info" / "exclude"
@@ -32,24 +32,64 @@ def run(target: Path) -> dict:
         "workflow_exists": root.exists(),
         "missing": [],
         "warnings": [],
+        "optional_warnings": [],
+        "blocking": [],
         "checks": {},
     }
     if not result["is_git_repo"]:
         result["warnings"].append("Not inside a git repository")
+        result["blocking"].append("Not inside a git repository")
         result["checks"]["git_repo"] = "missing"
         return result
 
     result["checks"]["git_repo"] = "ok"
 
+    if handoff_only:
+        if not workflow_exists(repo_root):
+            msg = "Autorunne workspace does not exist yet"
+            result["warnings"].append(msg)
+            result["blocking"].append(msg)
+            result["checks"]["workflow"] = "missing"
+            result["checks"]["handoff_consistency"] = "missing"
+            return result
+        result["checks"]["workflow"] = "ok"
+        try:
+            handoff = diagnose_handoff_consistency(repo_root)
+        except Exception as exc:
+            msg = f"handoff_consistency check failed: {exc}"
+            result["warnings"].append(msg)
+            result["blocking"].append(msg)
+            result["checks"]["handoff_consistency"] = "missing"
+            return result
+        result["handoff_consistency"] = handoff
+        if handoff["ok"]:
+            result["checks"]["handoff_consistency"] = "ok"
+        else:
+            result["checks"]["handoff_consistency"] = "mismatch"
+            result["warnings"].append(
+                "handoff_consistency fields: "
+                + ", ".join(f"{name}={value}" for name, value in handoff.get("fields", {}).items() if value)
+            )
+            for mismatch in handoff.get("mismatches", []):
+                result["warnings"].append(
+                    f"handoff_consistency mismatch: {mismatch['field']}={mismatch['value']} expected={mismatch['expected']}"
+                )
+            for text in handoff.get("workflow_backlog", []):
+                result["warnings"].append(f"handoff_consistency workflow backlog item: {text}")
+            result["blocking"].extend(result["warnings"])
+        return result
+
     if root.exists():
         missing_state = [name for name in STATE_FILES if not (state_root / name).exists()]
         missing_views = [name for name in VIEW_FILES if not (views_root / name).exists()]
         result["missing"] = [f"state/{name}" for name in missing_state] + [f"views/{name}" for name in missing_views]
+        result["blocking"].extend(result["missing"])
         result["checks"]["state_files"] = "ok" if not missing_state else "missing"
         result["checks"]["views"] = "ok" if not missing_views else "missing"
         result["checks"]["snapshot"] = "ok" if snapshot_path.exists() else "missing"
         if workflow_needs_migration(repo_root):
             result["warnings"].append("Legacy markdown workspace detected; run `autorunne migrate` to create state files")
+            result["blocking"].append("Legacy markdown workspace detected; run `autorunne migrate` to create state files")
             result["checks"]["legacy_workspace"] = "needs_migration"
         elif legacy_workspace_exists(repo_root):
             result["checks"]["legacy_workspace"] = "ok"
@@ -74,6 +114,7 @@ def run(target: Path) -> dict:
                     )
                 for text in handoff.get("workflow_backlog", []):
                     result["warnings"].append(f"handoff_consistency workflow backlog item: {text}")
+                result["blocking"].extend([warning for warning in result["warnings"] if warning.startswith("handoff_consistency")])
             try:
                 probe = view_file(repo_root, "START_HERE.md")
                 before = probe.read_text(encoding="utf-8") if probe.exists() else None
@@ -84,14 +125,20 @@ def run(target: Path) -> dict:
                 if before is not None:
                     after = probe.read_text(encoding="utf-8") if probe.exists() else None
                     if after != before:
-                        result["warnings"].append("Render rebuild changed START_HERE.md content during doctor check")
+                        message = "Render rebuild changed START_HERE.md content during doctor check"
+                        result["warnings"].append(message)
+                        result["blocking"].append(message)
             except Exception as exc:
-                result["warnings"].append(f"Render rebuild failed: {exc}")
+                message = f"Render rebuild failed: {exc}"
+                result["warnings"].append(message)
+                result["blocking"].append(message)
                 result["checks"]["render_rebuild"] = "missing"
         else:
             result["checks"]["render_rebuild"] = "missing"
     else:
-        result["warnings"].append("Autorunne workspace does not exist yet")
+        message = "Autorunne workspace does not exist yet"
+        result["warnings"].append(message)
+        result["blocking"].append(message)
         result["checks"]["state_files"] = "missing"
         result["checks"]["views"] = "missing"
         result["checks"]["snapshot"] = "missing"
@@ -105,7 +152,9 @@ def run(target: Path) -> dict:
 
     hooks_ok = post_checkout.exists() and post_merge.exists()
     if not hooks_ok:
-        result["warnings"].append("Git hooks are not installed")
+        message = "Git hooks are not installed"
+        result["warnings"].append(message)
+        result["optional_warnings"].append(message)
         result["checks"]["hooks"] = "missing"
     else:
         result["checks"]["hooks"] = "ok"
@@ -115,7 +164,9 @@ def run(target: Path) -> dict:
 
     precommit_ok = pre_commit_hook.exists() and precommit_config.exists()
     if not precommit_ok:
-        result["warnings"].append("Pre-commit config is not installed")
+        message = "Pre-commit config is not installed"
+        result["warnings"].append(message)
+        result["optional_warnings"].append(message)
         result["checks"]["pre_commit"] = "missing"
     else:
         result["checks"]["pre_commit"] = "ok"
@@ -127,14 +178,18 @@ def run(target: Path) -> dict:
         and copilot_instructions.exists()
     )
     if not integrations_ok:
-        result["warnings"].append("Repo-level agent integrations are not fully installed")
+        message = "Repo-level agent integrations are not fully installed"
+        result["warnings"].append(message)
+        result["optional_warnings"].append(message)
         result["checks"]["integrations"] = "missing"
     else:
         result["checks"]["integrations"] = "ok"
 
     wrappers_ok = all(path.exists() for path in wrappers)
     if not wrappers_ok:
-        result["warnings"].append("Repo-level wrappers are not installed")
+        message = "Repo-level wrappers are not installed"
+        result["warnings"].append(message)
+        result["optional_warnings"].append(message)
         result["checks"]["wrappers"] = "missing"
     else:
         result["checks"]["wrappers"] = "ok"

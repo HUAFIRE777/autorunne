@@ -568,6 +568,9 @@ def status(path: str | None = typer.Option(None, help="Target repository path"))
     table.add_row("Repo wrappers", wrappers)
     table.add_row("Missing files", ", ".join(result["missing"]) or "none")
     table.add_row("Next action", result["next_action"])
+    optional_mirrors = result.get("optional_mirrors_missing", [])
+    if optional_mirrors:
+        table.add_row("Optional mirrors missing", ", ".join(optional_mirrors))
     tracked_text = "yes" if result["workflow_tracked"] else "no (local-only handoff state)"
     table.add_row("Autorunne state tracked by git", tracked_text)
     console.print(table)
@@ -579,9 +582,16 @@ def status(path: str | None = typer.Option(None, help="Target repository path"))
 
 
 @app.command()
-def doctor(path: str | None = typer.Option(None, help="Target repository path")):
+def doctor(
+    path: str | None = typer.Option(None, help="Target repository path"),
+    handoff: bool = typer.Option(
+        False,
+        "--handoff",
+        help="Only check handoff consistency; ignore optional setup such as hooks, wrappers, and package artifacts.",
+    ),
+):
     """Validate Autorunne structure and git isolation."""
-    result = doctor_cmd.run(_target(path))
+    result = doctor_cmd.run(_target(path), handoff_only=handoff)
     table = Table(title="Autorunne Doctor")
     table.add_column("Check")
     table.add_column("Status")
@@ -590,9 +600,20 @@ def doctor(path: str | None = typer.Option(None, help="Target repository path"))
     console.print(table)
     if result["missing"]:
         console.print({"missing": result["missing"]})
-    if result["warnings"]:
-        console.print({"warnings": result["warnings"]})
-    raise typer.Exit(1 if result["warnings"] or result["missing"] else 0)
+    blocking = result.get("blocking", [])
+    optional_warnings = result.get("optional_warnings", [])
+    general_warnings = [
+        warning
+        for warning in result.get("warnings", [])
+        if warning not in blocking and warning not in optional_warnings
+    ]
+    if blocking:
+        console.print({"Blocking issues": blocking})
+    if optional_warnings:
+        console.print({"Optional warnings": optional_warnings})
+    if general_warnings:
+        console.print({"warnings": general_warnings})
+    raise typer.Exit(1 if blocking else 0)
 
 
 @app.command("export")

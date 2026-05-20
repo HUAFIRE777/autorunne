@@ -2,6 +2,18 @@
 
 All notable changes to Autorunne are documented here.
 
+## 0.6.28 - 2026-05-20
+
+### Fixed
+- `autorunne status` now treats root-level START_HERE-style mirror files as optional when the canonical `.autorunne/views/*` handoff views exist, avoiding misleading Missing files output.
+- Added `autorunne doctor --handoff` for a focused handoff-consistency check that exits 0 when the handoff is clean, even if optional setup such as hooks or pre-commit is absent.
+- Default `autorunne doctor` now separates Blocking issues from Optional warnings, so hooks, pre-commit, repo wrappers, and repo integrations no longer fail doctor when core handoff state is healthy.
+- Preserved 0.6.27 business/integration diff separation so old `.agents/.claude` workflow-only diffs stay out of business changed files.
+
+### Verification
+- Added CLI regression coverage for optional mirror reporting, handoff-only doctor, and optional setup warnings.
+- Verified focused CLI/state/integration tests and the full pytest suite before release.
+
 ## 0.6.27 - 2026-05-20
 
 ### Improved

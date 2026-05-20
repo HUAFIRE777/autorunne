@@ -102,6 +102,19 @@ def default_body(version: str) -> str:
     release_url = f"https://github.com/HUAFIRE777/autorunne/releases/tag/v{version}"
     pypi_url = f"https://pypi.org/project/autorunne/{version}/"
 
+    if version == "0.6.28":
+        intro = """Autorunne 0.6.28 发布了。
+
+这版是 0.6.27 核心 handoff 通过真实复测后的干净度补丁：不大改已通过的交接逻辑，只把 status / doctor / integration diff 的噪音降下来。"""
+        bullets = """
+- `autorunne status` 不再把 root START_HERE mirror 缺失误报成核心 Missing files
+- 新增 `autorunne doctor --handoff`，只看交接一致性；handoff ok 就退出 0
+- 默认 `autorunne doctor` 区分 Blocking issues 和 Optional warnings，hooks/pre-commit/wrappers/integrations 不再误阻断
+- 继续保持 `.agents/.claude` 这类 workflow-only diff 与业务 changed_files 分离
+""".strip()
+        why = """简单说：下一个 agent 看到的会是真正阻断交接的问题，而不是可选安装项或 mirror 噪音。"""
+        return f"""{intro}\n\n{bullets}\n\n{why}\n\n升级：\n\n```bash\npipx upgrade autorunne --pip-args=\"--no-cache-dir -i https://pypi.org/simple\"\n```\n\n检查版本：\n\n```bash\nautorunne --version\n```\n\n只检查 handoff：\n\n```bash\nautorunne doctor --handoff\n```\n\nRelease: {release_url}\nPyPI: {pypi_url}\n""".strip()
+
     if version == "0.6.27":
         intro = """Autorunne 0.6.27 发布了。
 
@@ -247,6 +260,7 @@ def main() -> int:
 
     version = args.version.removeprefix("v")
     default_titles = {
+        "0.6.28": "Autorunne 0.6.28 发布：status / doctor 干净度补丁",
         "0.6.27": "Autorunne 0.6.27 发布：交接 doctor / repair 与 diff 分类加固",
         "0.6.26": "Autorunne 0.6.26 发布：真实交接状态一致性修复",
         "0.6.25": "Autorunne 0.6.25 发布：下一轮 AI 接手更干净",

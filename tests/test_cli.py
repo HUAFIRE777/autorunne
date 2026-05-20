@@ -894,7 +894,8 @@ def test_doctor_warns_when_workflow_missing(git_repo: Path):
 def test_doctor_checks_vscode_and_hooks(git_repo: Path):
     _run_in(git_repo, ["init", "--with-vscode"])
     result = _run_in(git_repo, ["doctor"])
-    assert result.exit_code == 1
+    assert result.exit_code == 0
+    assert "Optional warnings" in result.stdout
     assert "Git hooks are not installed" in result.stdout
     assert "Pre-commit config is not installed" in result.stdout
     _run_in(git_repo, ["hooks", "--with-pre-commit"])

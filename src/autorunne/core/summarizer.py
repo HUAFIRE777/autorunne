@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from autorunne.core.paths import STATE_FILES, VIEW_FILES, state_dir, views_dir, workflow_dir
+from autorunne.core.paths import STATE_FILES, VIEW_FILES, state_dir, views_dir, workflow_dir, workflow_file
 
 
 def summarize_status(repo_root: Path, scan: dict) -> dict:
@@ -13,6 +13,7 @@ def summarize_status(repo_root: Path, scan: dict) -> dict:
     missing_state = [name for name in STATE_FILES if name not in present_state]
     present_views = [name for name in VIEW_FILES if (views_root / name).exists()]
     missing_views = [name for name in VIEW_FILES if name not in present_views]
+    optional_mirrors_missing = [name for name in VIEW_FILES if (views_root / name).exists() and not workflow_file(repo_root, name).exists()]
     return {
         "repo": repo_root.name,
         "workflow_root": str(root),
@@ -22,6 +23,7 @@ def summarize_status(repo_root: Path, scan: dict) -> dict:
         "missing": missing_state + missing_views,
         "missing_state": missing_state,
         "missing_views": missing_views,
+        "optional_mirrors_missing": optional_mirrors_missing,
         "stack": scan["stack"],
         "framework": scan["framework"],
         "next_action": scan["next_action"],

@@ -53,13 +53,39 @@ def test_record_show_history_and_trace_commands(python_repo: Path):
     assert "manual_recorded" in trace_result.stdout
 
 
-def test_doctor_checks_renderability_and_integrations(python_repo: Path):
+def test_doctor_checks_renderability_and_integrations_without_blocking_on_optional_setup(python_repo: Path):
     _run_in(python_repo, ["open"])
     result = _run_in(python_repo, ["doctor"])
-    assert result.exit_code == 1
+    assert result.exit_code == 0
     assert "render_rebuild" in result.stdout
     assert "integrations" in result.stdout
     assert "wrappers" in result.stdout
+    assert "Optional warnings" in result.stdout
+    assert "Git hooks are not installed" in result.stdout
+
+
+def test_doctor_handoff_only_ignores_optional_setup_when_handoff_is_clean(python_repo: Path):
+    _run_in(python_repo, ["open"])
+    result = _run_in(python_repo, ["doctor", "--handoff"])
+    assert result.exit_code == 0
+    assert "handoff_consistency" in result.stdout
+    assert "ok" in result.stdout
+    assert "Git hooks are not installed" not in result.stdout
+
+
+def test_status_treats_root_start_here_as_optional_mirror_not_missing(python_repo: Path):
+    _run_in(python_repo, ["open"])
+    root_mirror = python_repo / ".autorunne" / "START_HERE.md"
+    root_mirror.unlink()
+    assert (python_repo / ".autorunne" / "views" / "START_HERE.md").exists()
+
+    result = _run_in(python_repo, ["status"])
+
+    assert result.exit_code == 0
+    assert "Missing files" in result.stdout
+    assert "START_HERE.md" not in result.stdout.split("Missing files", 1)[1].split("Next action", 1)[0]
+    assert "Optional mirrors missing" in result.stdout
+    assert "START_HERE.md" in result.stdout.split("Optional mirrors missing", 1)[1]
 
 
 def test_show_events_section_exposes_manual_record(python_repo: Path):
