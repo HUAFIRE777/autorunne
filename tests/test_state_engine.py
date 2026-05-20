@@ -195,12 +195,101 @@ def test_repeated_open_does_not_duplicate_identical_resume_or_integration_logs(p
     _run_in(python_repo, ["open"])
 
     # Simulate a real agent handoff where an integration refresh/noise entry can
-    # sit between two otherwise identical open auto-resume events.
+    # sit between two otherwise identical open auto-resume events. Existing
+    # repo-local agent skill files should not be silently rewritten by open.
     skill_path = python_repo / ".agents" / "skills" / "autorunne-workflow" / "SKILL.md"
-    skill_path.write_text(skill_path.read_text(encoding="utf-8").replace(f"version: {__version__}", "version: 0.6.0"), encoding="utf-8")
+    older_skill_text = skill_path.read_text(encoding="utf-8").replace(f"version: {__version__}", "version: 0.6.0")
+    skill_path.write_text(older_skill_text, encoding="utf-8")
     _run_in(python_repo, ["open"])
     _run_in(python_repo, ["open"])
 
     log_text = (python_repo / ".autorunne" / "SESSION_LOG.md").read_text(encoding="utf-8")
     assert log_text.count("| workspace open auto-resume") == 1
     assert log_text.count("integration updated") <= 1
+    assert skill_path.read_text(encoding="utf-8") == older_skill_text
+
+
+def test_finish_handoff_uses_one_product_next_action_for_new_agents(python_repo: Path):
+    _run_in(python_repo, ["adopt"])
+    _run_in(
+        python_repo,
+        [
+            "start",
+            "--task",
+            "Lesson 09/10 real development",
+            "--next",
+            "Old Lesson 08 workflow note",
+        ],
+    )
+    _run_in(python_repo, ["task", "add", "--text", "Lesson 11 mobile polish"])
+
+    result = _run_in(
+        python_repo,
+        [
+            "finish",
+            "--summary",
+            "Lesson 09/10 completed",
+            "--task",
+            "Lesson 09/10",
+            "--validate",
+            "pytest -q",
+            "--next",
+            "Lesson 11 mobile polish",
+        ],
+    )
+    assert result.exit_code == 0
+
+    state_root = python_repo / ".autorunne" / "state"
+    views_root = python_repo / ".autorunne" / "views"
+    current = json.loads((state_root / "current.json").read_text(encoding="utf-8"))
+    tasks = json.loads((state_root / "tasks.json").read_text(encoding="utf-8"))
+    events = [json.loads(line) for line in (state_root / "events.jsonl").read_text(encoding="utf-8").splitlines() if line.strip()]
+    start_here = (views_root / "START_HERE.md").read_text(encoding="utf-8")
+    next_action = (views_root / "NEXT_ACTION.md").read_text(encoding="utf-8")
+    status_result = _run_in(python_repo, ["status"])
+
+    assert current["active_task"] is None
+    assert current["last_action"] == "task_finished"
+    assert current["next_action"] == "Lesson 11 mobile polish"
+    assert current["next_product_task"] == "Lesson 11 mobile polish"
+    assert tasks["next_up"][0]["text"] == "Lesson 11 mobile polish"
+    assert current["last_validation"]["command"] == "pytest -q"
+    assert current["last_validation"]["status"] == "passed"
+    assert current["last_validation"]["timestamp"]
+    assert "task_finished" in [event["type"] for event in events]
+    assert "Next product task：Lesson 11 mobile polish" in start_here
+    assert "- 下一步：Lesson 11 mobile polish" in start_here
+    assert "- Next action: Lesson 11 mobile polish" in start_here
+    assert "## Next product task\nLesson 11 mobile polish" in next_action
+    assert "## Legacy combined next action\nLesson 11 mobile polish" in next_action
+    assert status_result.exit_code == 0
+    assert "Next action" in status_result.stdout
+    assert "Lesson 11 mobile polish" in status_result.stdout
+
+
+def test_finish_workflow_follow_up_does_not_override_product_next_action(python_repo: Path):
+    _run_in(python_repo, ["adopt"])
+    _run_in(python_repo, ["start", "--task", "Lesson 09/10 real development", "--next", "Lesson 11 mobile polish"])
+
+    result = _run_in(
+        python_repo,
+        [
+            "finish",
+            "--summary",
+            "Lesson 09/10 completed",
+            "--task",
+            "Lesson 09/10",
+            "--no-validate",
+            "--next",
+            "Workflow follow-up: review rendered STATUS and START_HERE",
+        ],
+    )
+    assert result.exit_code == 0
+
+    current = json.loads((python_repo / ".autorunne" / "state" / "current.json").read_text(encoding="utf-8"))
+    start_here = (python_repo / ".autorunne" / "views" / "START_HERE.md").read_text(encoding="utf-8")
+    assert current["next_action"] == "Lesson 11 mobile polish"
+    assert current["next_product_task"] == "Lesson 11 mobile polish"
+    assert current["workflow_follow_up"] == "Workflow follow-up: review rendered STATUS and START_HERE"
+    assert "- 下一步：Lesson 11 mobile polish" in start_here
+    assert "Workflow follow-up：Workflow follow-up: review rendered STATUS and START_HERE" in start_here

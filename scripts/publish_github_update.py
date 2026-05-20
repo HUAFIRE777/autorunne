@@ -102,6 +102,19 @@ def default_body(version: str) -> str:
     release_url = f"https://github.com/HUAFIRE777/autorunne/releases/tag/v{version}"
     pypi_url = f"https://pypi.org/project/autorunne/{version}/"
 
+    if version == "0.6.26":
+        intro = """Autorunne 0.6.26 发布了。
+
+这版修的是一次真实开发复测发现的交接一致性问题：任务完成、验证通过后，不同入口看到的“下一步”必须一致。"""
+        bullets = """
+- finish 后 current/tasks/NEXT_ACTION/START_HERE/status 会统一到同一个主下一步
+- workflow_follow_up 只作为流程备注，不再覆盖主 next action
+- current.json 新增结构化 last_validation，保留验证命令、状态、时间和输出摘要
+- autorunne open 不再静默刷新已有 repo-local integration 文件版本，避免污染业务 diff
+""".strip()
+        why = """简单说：下一个 agent 打开项目时，不会再被旧 Lesson 或流程备注带偏。"""
+        return f"""{intro}\n\n{bullets}\n\n{why}\n\n安装或更新：\n\n```bash\npipx upgrade autorunne --pip-args=\"--no-cache-dir -i https://pypi.org/simple\"\n```\n\n新安装：\n\n```bash\npipx install autorunne --pip-args=\"--no-cache-dir -i https://pypi.org/simple\"\n```\n\n检查版本：\n\n```bash\nautorunne --version\n```\n\nRelease: {release_url}\nPyPI: {pypi_url}\n""".strip()
+
     if version == "0.6.25":
         intro = """Autorunne 0.6.25 发布了。
 
@@ -221,6 +234,7 @@ def main() -> int:
 
     version = args.version.removeprefix("v")
     default_titles = {
+        "0.6.26": "Autorunne 0.6.26 发布：真实交接状态一致性修复",
         "0.6.25": "Autorunne 0.6.25 发布：下一轮 AI 接手更干净",
         "0.6.24": "Autorunne 0.6.24 发布：新项目自动 Git 初始化",
         "0.6.23": "Autorunne 0.6.23 发布：新项目先 git init 的友好提醒",

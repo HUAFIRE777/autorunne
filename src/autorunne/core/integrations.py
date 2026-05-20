@@ -215,7 +215,7 @@ def _target_roots(repo_root: Path, scope: str) -> dict[str, Path]:
     }
 
 
-def _write_integration_file(path: Path, content: str, skipped_paths: list[str]) -> bool:
+def _write_integration_file(path: Path, content: str, skipped_paths: list[str], *, refresh_existing: bool = True) -> bool:
     """Write an integration file and report whether its content changed.
 
     Direct agent runs such as Codex sandbox modes may allow edits to normal project
@@ -225,8 +225,11 @@ def _write_integration_file(path: Path, content: str, skipped_paths: list[str]) 
     """
     normalized = content.rstrip() + "\n"
     try:
-        if path.exists() and path.read_text(encoding="utf-8") == normalized:
-            return False
+        if path.exists():
+            if path.read_text(encoding="utf-8") == normalized:
+                return False
+            if not refresh_existing:
+                return False
         write_text(path, content)
         return True
     except OSError as exc:
@@ -236,7 +239,7 @@ def _write_integration_file(path: Path, content: str, skipped_paths: list[str]) 
         raise
 
 
-def install_integrations(repo_root: Path, *, tool: str = "all", scope: str = "repo") -> dict:
+def install_integrations(repo_root: Path, *, tool: str = "all", scope: str = "repo", refresh_existing: bool = True) -> dict:
     targets = _target_roots(repo_root, scope)
     selected = _tool_selection(tool)
     ensure_dir(targets["bin_root"])
@@ -244,30 +247,30 @@ def install_integrations(repo_root: Path, *, tool: str = "all", scope: str = "re
     ensure_dir(targets["claude_root"])
     created_paths: list[str] = []
     skipped_paths: list[str] = []
-    if _write_integration_file(targets["agents_md"], _agents_text(), skipped_paths):
+    if _write_integration_file(targets["agents_md"], _agents_text(), skipped_paths, refresh_existing=refresh_existing):
         created_paths.append(str(targets["agents_md"]))
     tools_installed: list[str] = []
     wrappers: list[str] = []
 
     if any(name in selected for name in ["codex", "hermes"]):
         skill_path = targets["agents_root"] / "SKILL.md"
-        if _write_integration_file(skill_path, _skill_text("codex"), skipped_paths):
+        if _write_integration_file(skill_path, _skill_text("codex"), skipped_paths, refresh_existing=refresh_existing):
             created_paths.append(str(skill_path))
         tools_installed.append("codex")
 
     if "claude" in selected:
         skill_path = targets["claude_root"] / "SKILL.md"
-        if _write_integration_file(skill_path, _skill_text("claude"), skipped_paths):
+        if _write_integration_file(skill_path, _skill_text("claude"), skipped_paths, refresh_existing=refresh_existing):
             created_paths.append(str(skill_path))
         tools_installed.append("claude")
 
     if "cursor" in selected:
-        if _write_integration_file(targets["cursor_rules"], _cursor_rules_text(), skipped_paths):
+        if _write_integration_file(targets["cursor_rules"], _cursor_rules_text(), skipped_paths, refresh_existing=refresh_existing):
             created_paths.append(str(targets["cursor_rules"]))
         tools_installed.append("cursor")
 
     if "copilot" in selected:
-        if _write_integration_file(targets["copilot_instructions"], _copilot_instructions_text(), skipped_paths):
+        if _write_integration_file(targets["copilot_instructions"], _copilot_instructions_text(), skipped_paths, refresh_existing=refresh_existing):
             created_paths.append(str(targets["copilot_instructions"]))
         tools_installed.append("copilot")
 
@@ -282,7 +285,7 @@ def install_integrations(repo_root: Path, *, tool: str = "all", scope: str = "re
         wrapper_name = f"ar-{name}"
         wrapper_path = targets["bin_root"] / wrapper_name
         content = _wrapper_script(wrapper_map[name]) if scope == "repo" else _user_wrapper_script(wrapper_map[name])
-        if _write_integration_file(wrapper_path, content, skipped_paths):
+        if _write_integration_file(wrapper_path, content, skipped_paths, refresh_existing=refresh_existing):
             try:
                 wrapper_path.chmod(0o755)
             except OSError as exc:

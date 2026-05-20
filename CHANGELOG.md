@@ -2,6 +2,18 @@
 
 All notable changes to Autorunne are documented here.
 
+## 0.6.26 - 2026-05-20
+
+### Fixed
+- `finish --next` now keeps `current.next_action`, `current.next_product_task`, `tasks.next_up[0]`, `NEXT_ACTION.md`, `START_HERE.md`, and `autorunne status` aligned on the same main product next action.
+- `workflow_follow_up` is now kept as a process note only and no longer overrides the main next action after a task finishes.
+- `current.json` now stores structured `last_validation` evidence with command, status, timestamp, and output summary.
+- Routine `autorunne open` now creates missing repo-local integration files but does not silently refresh existing integration versions; explicit `autorunne integrate` remains the deliberate sync command.
+
+### Verification
+- Added real handoff regression coverage for a finished Lesson 09/10 flow where the next agent reads START_HERE/status/current/tasks/events and must see Lesson 11 consistently.
+- Verified focused regression tests, full pytest, package build, Twine metadata, and a real temp-repo handoff smoke before release.
+
 ## 0.6.25 - 2026-05-20
 
 ### Fixed

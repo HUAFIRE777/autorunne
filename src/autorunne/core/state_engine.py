@@ -166,6 +166,18 @@ def _is_workflow_follow_up_text(text: str) -> bool:
     return any(term in lowered for term in workflow_terms)
 
 
+def _is_placeholder_next_text(text: str) -> bool:
+    clean = text.strip().lower()
+    return clean in {
+        "确认下一个具体任务",
+        "确认下一个产品开发任务",
+        "confirm the next concrete step.",
+        "confirm the next concrete step",
+        "confirm the next product development task.",
+        "confirm the next product development task",
+    }
+
+
 _MISSING = object()
 
 
@@ -174,7 +186,7 @@ def _first_pending_product_task(state: dict[str, Any], *, exclude_texts: list[st
     for bucket in ("next_up", "in_progress"):
         for item in state.get("tasks", {}).get(bucket, []):
             text = (item.get("text") or "").strip()
-            if not text or text in excluded or _is_workflow_follow_up_text(text):
+            if not text or text in excluded or _is_workflow_follow_up_text(text) or _is_placeholder_next_text(text):
                 continue
             return text
     return None
@@ -211,9 +223,9 @@ def _clean_next_slots(state: dict[str, Any]) -> bool:
     workflow_follow_up = workflow_candidates[0] if workflow_candidates else "无"
 
     product = current_product
-    if current_next and current_next not in completed and not _is_workflow_follow_up_text(current_next):
+    if current_next and current_next not in completed and not _is_workflow_follow_up_text(current_next) and not _is_placeholder_next_text(current_next):
         product = current_next
-    elif not product or product in completed or _is_workflow_follow_up_text(product):
+    elif not product or product in completed or _is_workflow_follow_up_text(product) or _is_placeholder_next_text(product):
         product = _first_pending_product_task(
             state,
             exclude_texts=[*completed, workflow_follow_up, current_next if _is_workflow_follow_up_text(current_next) else None],
@@ -221,9 +233,7 @@ def _clean_next_slots(state: dict[str, Any]) -> bool:
 
     current["next_product_task"] = product
     current["workflow_follow_up"] = workflow_follow_up or "无"
-    if workflow_follow_up and workflow_follow_up != "无":
-        current["next_action"] = workflow_follow_up
-    elif product:
+    if product:
         current["next_action"] = product
     elif current_next and current_next not in completed:
         current["next_action"] = current_next
@@ -254,10 +264,22 @@ def _set_next_slots(
     if clean_next and (not prefer_product) and _is_workflow_follow_up_text(clean_next):
         current["workflow_follow_up"] = clean_next
         current["next_product_task"] = existing_product or (None if explicit_product_fallback else "确认下一个产品开发任务")
+        current["next_action"] = current["next_product_task"] or "确认下一个具体任务"
     else:
         current["next_product_task"] = clean_next
         current.setdefault("workflow_follow_up", "无")
-    current["next_action"] = clean_next
+        current["next_action"] = clean_next
+
+
+def _structured_validation(validation: dict[str, Any] | None, *, timestamp: str) -> dict[str, str] | None:
+    if not validation:
+        return None
+    return {
+        "command": str(validation.get("command") or "").strip(),
+        "status": str(validation.get("status") or "").strip(),
+        "timestamp": timestamp,
+        "output_summary": _summarize_validation_output(validation.get("output")),
+    }
 
 
 def _git_output(repo_root: Path, *args: str) -> str:
@@ -780,21 +802,28 @@ def finish_task(
     )
     state["current"]["active_task"] = None if matched else state["current"].get("active_task")
     _realign_focus_sections(state, timestamp=timestamp, source="finish")
-    state["tasks"]["next_up"] = _refresh_next_up(
-        state["tasks"].get("next_up", []),
-        next_action=next_action.strip(),
-        timestamp=timestamp,
-        source="finish",
-        remove_texts=[completed_text, previous_next_action],
-    )
     excluded_product_texts = [completed_text, matched, state["current"].get("active_task")]
+    is_workflow_next = _is_workflow_follow_up_text(next_action)
     product_fallback = _MISSING
-    if _is_workflow_follow_up_text(next_action):
+    next_up_value = next_action.strip()
+    remove_next_texts = [completed_text]
+    if is_workflow_next:
         current_product = (state["current"].get("next_product_task") or "").strip()
-        if current_product and current_product not in {text for text in excluded_product_texts if text}:
+        if current_product and current_product not in {text for text in excluded_product_texts if text} and not _is_workflow_follow_up_text(current_product):
             product_fallback = current_product
         else:
             product_fallback = _first_pending_product_task(state, exclude_texts=excluded_product_texts)
+        if product_fallback is not _MISSING and product_fallback:
+            next_up_value = str(product_fallback).strip()
+    else:
+        remove_next_texts.append(previous_next_action)
+    state["tasks"]["next_up"] = _refresh_next_up(
+        state["tasks"].get("next_up", []),
+        next_action=next_up_value,
+        timestamp=timestamp,
+        source="finish",
+        remove_texts=remove_next_texts,
+    )
     _set_next_slots(
         state["current"],
         next_action,
@@ -802,8 +831,13 @@ def finish_task(
         product_fallback=product_fallback,
         exclude_product_texts=excluded_product_texts,
     )
+    if not is_workflow_next:
+        state["current"]["workflow_follow_up"] = "无"
     state["current"]["last_action"] = "task_finished"
     state["current"]["updated_at"] = timestamp
+    structured_validation = _structured_validation(validation, timestamp=timestamp)
+    if structured_validation:
+        state["current"]["last_validation"] = structured_validation
     lines = [
         f"Summary: {summary.strip()}",
         f"Next action: {next_action.strip()}",

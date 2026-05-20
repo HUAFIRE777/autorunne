@@ -5,7 +5,17 @@ from typing import Any
 WORKFLOW_FLOW = "open/sync → start/ingest → checkpoint → finish/validate"
 
 
-def _latest_validation(sessions: dict[str, Any]) -> dict[str, str]:
+def _latest_validation(current: dict[str, Any], sessions: dict[str, Any]) -> dict[str, str]:
+    structured = current.get("last_validation") or {}
+    if structured:
+        raw_status = str(structured.get("status") or "").strip().lower()
+        status = "通过" if raw_status == "passed" else "失败" if raw_status == "failed" else raw_status or "未记录"
+        return {
+            "status": status,
+            "command": str(structured.get("command") or "未记录"),
+            "time": str(structured.get("timestamp") or "未记录"),
+            "output": str(structured.get("output_summary") or "未记录"),
+        }
     for session in reversed(sessions.get("items", [])):
         command = "未记录"
         status = "未记录"
@@ -51,7 +61,7 @@ def build_user_summary(state: dict[str, Any], *, missing: list[str] | None = Non
         project_state = "已准备，可开始任务"
 
     context_entry = "已准备好" if not missing_files else f"缺少 {len(missing_files)} 个入口文件"
-    validation = _latest_validation(sessions)
+    validation = _latest_validation(current, sessions)
     validation_status = validation["status"]
     next_action = current.get("next_action") or "确认下一个具体任务"
     if current.get("next_product_task"):

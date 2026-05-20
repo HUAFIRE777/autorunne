@@ -92,11 +92,10 @@ def test_open_skips_existing_read_only_integrations_in_agent_sandbox(node_repo: 
     assert "resumed" in resumed.stdout
     assert "version: 0.6.17" in protected_skill.read_text(encoding="utf-8")
     log_text = (node_repo / ".autorunne" / "SESSION_LOG.md").read_text(encoding="utf-8")
-    assert "integration updated" in log_text
-    assert "Skipped read-only integration files" in log_text
+    assert "Skipped read-only integration files" not in log_text
 
 
-def test_open_refreshes_stale_repo_skill_version(node_repo: Path):
+def test_integrate_refreshes_stale_repo_skill_version_when_explicitly_requested(node_repo: Path):
     first = _run_in(node_repo, ["open"])
     assert first.exit_code == 0
 
@@ -105,8 +104,12 @@ def test_open_refreshes_stale_repo_skill_version(node_repo: Path):
     agents_skill_path.write_text(stale_text, encoding="utf-8")
 
     resumed = _run_in(node_repo, ["open"])
-
     assert resumed.exit_code == 0
+    assert "version: 0.6.17" in agents_skill_path.read_text(encoding="utf-8")
+
+    refreshed = _run_in(node_repo, ["integrate", "--tool", "all", "--scope", "repo"])
+
+    assert refreshed.exit_code == 0
     assert f"version: {__version__}" in agents_skill_path.read_text(encoding="utf-8")
 
 
