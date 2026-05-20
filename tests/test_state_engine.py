@@ -293,3 +293,122 @@ def test_finish_workflow_follow_up_does_not_override_product_next_action(python_
     assert current["workflow_follow_up"] == "Workflow follow-up: review rendered STATUS and START_HERE"
     assert "- 下一步：Lesson 11 mobile polish" in start_here
     assert "Workflow follow-up：Workflow follow-up: review rendered STATUS and START_HERE" in start_here
+
+
+
+def test_sync_cleans_stale_workflow_follow_up_from_main_backlog_after_finish(python_repo: Path):
+    _run_in(python_repo, ["adopt"])
+
+    state_root = python_repo / ".autorunne" / "state"
+    current_path = state_root / "current.json"
+    tasks_path = state_root / "tasks.json"
+    current = json.loads(current_path.read_text(encoding="utf-8"))
+    tasks = json.loads(tasks_path.read_text(encoding="utf-8"))
+    stale_workflow = "Old Lesson 08 workflow follow-up: review START_HERE status view"
+    current["next_action"] = stale_workflow
+    current["next_product_task"] = stale_workflow
+    current["workflow_follow_up"] = stale_workflow
+    tasks["next_up"] = [{"text": stale_workflow, "status": "pending", "timestamp": "old", "source": "legacy-sync"}]
+    tasks["in_progress"] = [{"text": "Lesson 09/10 real development", "status": "pending", "timestamp": "old", "source": "legacy"}]
+    current["active_task"] = "Lesson 09/10 real development"
+    current_path.write_text(json.dumps(current, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    tasks_path.write_text(json.dumps(tasks, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+    _run_in(python_repo, ["task", "add", "--text", "Lesson 11 mobile polish"])
+    finish = _run_in(
+        python_repo,
+        [
+            "finish",
+            "--summary",
+            "Lesson 09/10 completed",
+            "--task",
+            "Lesson 09/10",
+            "--no-validate",
+            "--next",
+            "Lesson 11 mobile polish",
+        ],
+    )
+    assert finish.exit_code == 0
+    sync = _run_in(python_repo, ["sync"])
+    assert sync.exit_code == 0
+
+    current = json.loads(current_path.read_text(encoding="utf-8"))
+    tasks = json.loads(tasks_path.read_text(encoding="utf-8"))
+    start_here = (python_repo / ".autorunne" / "views" / "START_HERE.md").read_text(encoding="utf-8")
+    next_action = (python_repo / ".autorunne" / "views" / "NEXT_ACTION.md").read_text(encoding="utf-8")
+    status = _run_in(python_repo, ["status"])
+
+    assert current["next_action"] == "Lesson 11 mobile polish"
+    assert current["next_product_task"] == "Lesson 11 mobile polish"
+    assert current["workflow_follow_up"] == "无"
+    assert tasks["next_up"][0]["text"] == "Lesson 11 mobile polish"
+    assert stale_workflow not in [item["text"] for item in tasks["next_up"]]
+    assert "- 下一步：Lesson 11 mobile polish" in start_here
+    assert "- Next action: Lesson 11 mobile polish" in start_here
+    assert "## Legacy combined next action\nLesson 11 mobile polish" in next_action
+    assert status.exit_code == 0
+    assert "Lesson 11 mobile polish" in status.stdout
+
+
+def test_doctor_reports_handoff_consistency_drift(python_repo: Path):
+    _run_in(python_repo, ["adopt"])
+    current_path = python_repo / ".autorunne" / "state" / "current.json"
+    current = json.loads(current_path.read_text(encoding="utf-8"))
+    current["next_action"] = "Old Lesson 08 workflow follow-up"
+    current["next_product_task"] = "Lesson 11 mobile polish"
+    current_path.write_text(json.dumps(current, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+    result = _run_in(python_repo, ["doctor"])
+
+    assert result.exit_code == 1
+    assert "handoff_consistency" in result.stdout
+    assert "current.next_action" in result.stdout
+    assert "current.next_product_task" in result.stdout
+
+
+def test_repair_handoff_realigns_legacy_state_and_views(python_repo: Path):
+    _run_in(python_repo, ["adopt"])
+    state_root = python_repo / ".autorunne" / "state"
+    current_path = state_root / "current.json"
+    tasks_path = state_root / "tasks.json"
+    current = json.loads(current_path.read_text(encoding="utf-8"))
+    tasks = json.loads(tasks_path.read_text(encoding="utf-8"))
+    old_workflow = "Old Lesson 08 workflow follow-up: review STATUS.md"
+    current["next_action"] = old_workflow
+    current["next_product_task"] = "Lesson 11 mobile polish"
+    current["workflow_follow_up"] = old_workflow
+    tasks["next_up"] = [
+        {"text": old_workflow, "status": "pending", "timestamp": "old", "source": "legacy-sync"},
+        {"text": "Lesson 11 mobile polish", "status": "pending", "timestamp": "old", "source": "finish"},
+    ]
+    current_path.write_text(json.dumps(current, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    tasks_path.write_text(json.dumps(tasks, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+    result = _run_in(python_repo, ["repair-handoff"])
+
+    assert result.exit_code == 0
+    current = json.loads(current_path.read_text(encoding="utf-8"))
+    tasks = json.loads(tasks_path.read_text(encoding="utf-8"))
+    start_here = (python_repo / ".autorunne" / "views" / "START_HERE.md").read_text(encoding="utf-8")
+    assert current["next_action"] == "Lesson 11 mobile polish"
+    assert current["next_product_task"] == "Lesson 11 mobile polish"
+    assert tasks["next_up"][0]["text"] == "Lesson 11 mobile polish"
+    assert old_workflow not in [item["text"] for item in tasks["next_up"]]
+    assert "- 下一步：Lesson 11 mobile polish" in start_here
+
+
+def test_finish_changed_files_are_classified_and_keep_integration_out_of_business(python_repo: Path):
+    _run_in(python_repo, ["adopt"])
+    (python_repo / "src" / "app.py").write_text("print('business change')\n", encoding="utf-8")
+    skill_path = python_repo / ".agents" / "skills" / "autorunne-workflow" / "SKILL.md"
+    skill_path.write_text(skill_path.read_text(encoding="utf-8").replace("version:", "version: # dirty\nold-version:"), encoding="utf-8")
+
+    result = _run_in(python_repo, ["finish", "--summary", "Classified files", "--no-validate", "--next", "Next product slice"])
+
+    assert result.exit_code == 0
+    events = [json.loads(line) for line in (python_repo / ".autorunne" / "state" / "events.jsonl").read_text(encoding="utf-8").splitlines() if line.strip()]
+    payload = events[-1]["payload"]
+    assert "src/app.py" in payload["changed_files"]
+    assert ".agents/skills/autorunne-workflow/SKILL.md" not in payload["changed_files"]
+    assert ".agents/skills/autorunne-workflow/SKILL.md" in payload["changed_files_by_type"]["integration"]
+    assert "src/app.py" in payload["changed_files_by_type"]["business"]

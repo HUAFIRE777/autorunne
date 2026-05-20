@@ -2,6 +2,18 @@
 
 All notable changes to Autorunne are documented here.
 
+## 0.6.27 - 2026-05-20
+
+### Improved
+- Added a handoff consistency check to `autorunne doctor` so stale `current.next_action`, `current.next_product_task`, `tasks.next_up[0]`, `START_HERE`, `NEXT_ACTION`, and `STATUS` drift is reported with field-level details.
+- Added `autorunne repair-handoff` to realign legacy handoff state from the latest finished product next action or current product task, then re-render views.
+- Workflow follow-up notes are pruned from the main `tasks.next_up` backlog so process notes cannot become the first product task during sync/finish/repair.
+- `finish` now classifies changed files into business, Autorunne state, and integration buckets; repo-local skill/rule version diffs no longer mix into business `changed_files`.
+
+### Verification
+- Added regression coverage for stale Lesson 08 workflow follow-up state followed by a Lesson 11 finish/sync handoff.
+- Added doctor/repair and changed-file classification tests, then verified focused tests, full pytest, package build, Twine metadata, and real PyPI smoke before release.
+
 ## 0.6.26 - 2026-05-20
 
 ### Fixed

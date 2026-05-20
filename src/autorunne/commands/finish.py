@@ -79,5 +79,7 @@ def run(
         "matched_task": matched_task,
         "decision": decision.strip() if decision else None,
         "changed_files": git_details["changed_files"],
+        "changed_files_by_type": git_details.get("changed_files_by_type"),
+        "raw_changed_files": git_details.get("raw_changed_files", git_details["changed_files"]),
         "validation": validation,
     }

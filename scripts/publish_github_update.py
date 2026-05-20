@@ -102,6 +102,19 @@ def default_body(version: str) -> str:
     release_url = f"https://github.com/HUAFIRE777/autorunne/releases/tag/v{version}"
     pypi_url = f"https://pypi.org/project/autorunne/{version}/"
 
+    if version == "0.6.27":
+        intro = """Autorunne 0.6.27 发布了。
+
+这版是在 0.6.26 真实交接一致性修复上的继续加固：让多 agent 接手项目时更稳定、更干净、更不污染业务 diff。"""
+        bullets = """
+- `autorunne doctor` 新增 handoff 一致性检查，能指出具体漂移字段
+- 新增 `autorunne repair-handoff`，可修复旧 workspace 里的下一步状态漂移
+- workflow follow-up 不再进入主 `tasks.next_up[0]`，流程备注不会变成产品任务
+- `finish` 会把 changed_files 分成 business / autorunne_state / integration，`.agents/.claude` 版本 diff 不再混入业务改动
+""".strip()
+        why = """简单说：项目交给下一个 agent 时，主下一步更可靠，业务改动也更干净。"""
+        return f"""{intro}\n\n{bullets}\n\n{why}\n\n升级：\n\n```bash\npipx upgrade autorunne --pip-args=\"--no-cache-dir -i https://pypi.org/simple\"\n```\n\n检查版本：\n\n```bash\nautorunne --version\n```\n\n修复旧交接状态：\n\n```bash\nautorunne repair-handoff\nautorunne doctor\n```\n\nRelease: {release_url}\nPyPI: {pypi_url}\n""".strip()
+
     if version == "0.6.26":
         intro = """Autorunne 0.6.26 发布了。
 
@@ -234,6 +247,7 @@ def main() -> int:
 
     version = args.version.removeprefix("v")
     default_titles = {
+        "0.6.27": "Autorunne 0.6.27 发布：交接 doctor / repair 与 diff 分类加固",
         "0.6.26": "Autorunne 0.6.26 发布：真实交接状态一致性修复",
         "0.6.25": "Autorunne 0.6.25 发布：下一轮 AI 接手更干净",
         "0.6.24": "Autorunne 0.6.24 发布：新项目自动 Git 初始化",

@@ -4,7 +4,7 @@ from pathlib import Path
 
 from autorunne.core.gitops import detect_repo_root, is_tracked
 from autorunne.core.paths import STATE_FILES, VIEW_FILES, snapshot_file, state_dir, view_file, views_dir, workflow_bin_dir, workflow_dir
-from autorunne.core.state_engine import legacy_workspace_exists, render_from_state, workflow_exists, workflow_needs_migration
+from autorunne.core.state_engine import diagnose_handoff_consistency, legacy_workspace_exists, render_from_state, workflow_exists, workflow_needs_migration
 
 
 def run(target: Path) -> dict:
@@ -58,6 +58,22 @@ def run(target: Path) -> dict:
         if is_tracked(repo_root, root.name):
             result["warnings"].append(".autorunne is tracked by git; keep it local-only")
         if workflow_exists(repo_root):
+            handoff = diagnose_handoff_consistency(repo_root)
+            result["handoff_consistency"] = handoff
+            if handoff["ok"]:
+                result["checks"]["handoff_consistency"] = "ok"
+            else:
+                result["checks"]["handoff_consistency"] = "mismatch"
+                result["warnings"].append(
+                    "handoff_consistency fields: "
+                    + ", ".join(f"{name}={value}" for name, value in handoff.get("fields", {}).items() if value)
+                )
+                for mismatch in handoff.get("mismatches", []):
+                    result["warnings"].append(
+                        f"handoff_consistency mismatch: {mismatch['field']}={mismatch['value']} expected={mismatch['expected']}"
+                    )
+                for text in handoff.get("workflow_backlog", []):
+                    result["warnings"].append(f"handoff_consistency workflow backlog item: {text}")
             try:
                 probe = view_file(repo_root, "START_HERE.md")
                 before = probe.read_text(encoding="utf-8") if probe.exists() else None

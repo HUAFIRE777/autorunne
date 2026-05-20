@@ -30,6 +30,7 @@ from autorunne.commands import open as open_cmd
 from autorunne.commands import record as record_cmd
 from autorunne.commands import render as render_cmd
 from autorunne.commands import release as release_cmd
+from autorunne.commands import repair_handoff as repair_handoff_cmd
 from autorunne.commands import show as show_cmd
 from autorunne.commands import start as start_cmd
 from autorunne.commands import status as status_cmd
@@ -408,7 +409,12 @@ def finish(
     if result.get("decision"):
         console.print(f"Decision captured: {result['decision']}")
     if result.get("changed_files"):
-        console.print(f"Files changed: {', '.join(result['changed_files'])}")
+        console.print(f"Business files changed: {', '.join(result['changed_files'])}")
+    classified = result.get("changed_files_by_type") or {}
+    if classified.get("integration"):
+        console.print(f"Integration files changed: {', '.join(classified['integration'])}")
+    if classified.get("autorunne_state"):
+        console.print(f"Autorunne state files changed: {', '.join(classified['autorunne_state'])}")
     if result.get("validation"):
         console.print(f"Validation: {result['validation']['status']} ({result['validation']['command']})")
 
@@ -612,6 +618,15 @@ def release(
     console.print(f"Manifest: {result['manifest_path']}")
     if result['assets']:
         console.print({"assets": result['assets']})
+
+
+@app.command("repair-handoff")
+def repair_handoff(path: str | None = typer.Option(None, help="Target repository path")):
+    """Repair stale handoff next-action fields and rendered views."""
+    result = _run_or_exit(lambda: repair_handoff_cmd.run(_target(path)))
+    console.print(f"Handoff repaired: {result['next_action']}")
+    if result.get("removed_workflow_backlog"):
+        console.print(f"Removed workflow backlog: {', '.join(result['removed_workflow_backlog'])}")
 
 
 @app.command()

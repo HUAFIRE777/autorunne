@@ -64,7 +64,7 @@ def test_business_docs_position_autorunne_as_repo_local_memory_layer():
     release = RELEASE_NOTES_0622.read_text(encoding="utf-8")
     commercial = COMMERCIAL_STABILITY.read_text(encoding="utf-8")
 
-    assert "当前版本定位：0.6.26" in product
+    assert "当前版本定位：0.6.27" in product
     assert "repo-local 项目记忆" in product
     assert "frontend/backend/contracts" in product
     assert "商业稳定性结论" in product

@@ -12,6 +12,7 @@ from autorunne.core.paths import (
     STATE_FILES,
     read_json,
     state_file,
+    view_file,
     workflow_dir,
     workflow_file,
     write_json,
@@ -67,11 +68,18 @@ def _refresh_next_up(
     source: str,
     remove_texts: list[str] | None = None,
 ) -> list[dict[str, str]]:
+    clean_next = next_action.strip()
     cleaned = list(items)
     for text in remove_texts or []:
         if text and text.strip():
             cleaned, _ = _remove_task(cleaned, text)
-    return _dedupe_tasks([_task_item(next_action, timestamp=timestamp, source=source), *cleaned])
+    kept = []
+    for item in cleaned:
+        text = (item.get("text") or "").strip()
+        if text and _is_workflow_follow_up_text(text) and text.lower() != clean_next.lower():
+            continue
+        kept.append(item)
+    return _dedupe_tasks([_task_item(clean_next, timestamp=timestamp, source=source), *kept])
 
 
 def _realign_focus_sections(state: dict[str, Any], *, timestamp: str, source: str) -> None:
@@ -289,10 +297,40 @@ def _git_output(repo_root: Path, *args: str) -> str:
     return result.stdout.strip()
 
 
+def _classify_changed_file(path: str) -> str:
+    clean = path.strip()
+    if not clean:
+        return "other"
+    integration_prefixes = (
+        ".agents/skills/autorunne-workflow/",
+        ".claude/skills/autorunne-workflow/",
+        ".cursor/rules/autorunne-workflow",
+    )
+    integration_files = {
+        ".github/copilot-instructions.md",
+        "AGENTS.md",
+        "CLAUDE.md",
+    }
+    if clean.startswith(integration_prefixes) or clean in integration_files:
+        return "integration"
+    if clean.startswith(".autorunne/"):
+        return "autorunne_state"
+    return "business"
+
+
+def classify_changed_files(changed_files: list[str]) -> dict[str, list[str]]:
+    grouped = {"business": [], "autorunne_state": [], "integration": [], "other": []}
+    for path in changed_files:
+        bucket = _classify_changed_file(path)
+        if path not in grouped[bucket]:
+            grouped[bucket].append(path)
+    return grouped
+
+
 def collect_git_details(repo_root: Path) -> dict[str, Any]:
     status_text = _git_output(repo_root, "status", "--short", "--untracked-files=all")
     diff_stat = _git_output(repo_root, "diff", "--stat")
-    changed_files = []
+    raw_changed_files = []
     status_lines = []
     for raw_line in status_text.splitlines():
         line = raw_line.rstrip()
@@ -300,12 +338,15 @@ def collect_git_details(repo_root: Path) -> dict[str, Any]:
             continue
         status_lines.append(line)
         path = raw_line[3:].strip() if len(raw_line) > 3 and raw_line[2] == " " else raw_line[2:].strip() if len(raw_line) > 2 else line.strip()
-        if path and path not in changed_files:
-            changed_files.append(path)
+        if path and path not in raw_changed_files:
+            raw_changed_files.append(path)
+    changed_files_by_type = classify_changed_files(raw_changed_files)
     return {
         "git_status": status_lines,
         "diff_stat": diff_stat.splitlines() if diff_stat else [],
-        "changed_files": changed_files,
+        "raw_changed_files": raw_changed_files,
+        "changed_files_by_type": changed_files_by_type,
+        "changed_files": changed_files_by_type["business"],
     }
 
 
@@ -650,6 +691,141 @@ def _append_session(state: dict[str, Any], *, title: str, lines: list[str], time
 
     items.append(entry)
 
+
+
+def _extract_line_value(text: str, prefix: str) -> str | None:
+    for line in text.splitlines():
+        if line.startswith(prefix):
+            return line[len(prefix):].strip()
+    return None
+
+
+def _extract_section_value(text: str, heading: str) -> str | None:
+    pattern = rf"(?ms)^## {re.escape(heading)}\n(.*?)(?=^## |\Z)"
+    match = re.search(pattern, text)
+    if not match:
+        return None
+    for line in match.group(1).splitlines():
+        clean = line.strip()
+        if clean:
+            return clean
+    return None
+
+
+def _latest_finished_next_action(state: dict[str, Any]) -> str | None:
+    for event in reversed(state.get("events", [])):
+        if event.get("type") != "task_finished":
+            continue
+        text = str((event.get("payload") or {}).get("next_action") or "").strip()
+        if text and not _is_workflow_follow_up_text(text) and not _is_placeholder_next_text(text):
+            return text
+    return None
+
+
+def _primary_handoff_next(state: dict[str, Any]) -> str | None:
+    current = state.get("current", {})
+    completed = _completed_task_texts(state)
+    for candidate in (
+        _latest_finished_next_action(state),
+        current.get("next_product_task"),
+        current.get("next_action"),
+        _first_pending_product_task(state, exclude_texts=list(completed)),
+    ):
+        text = str(candidate or "").strip()
+        if text and text not in completed and not _is_workflow_follow_up_text(text) and not _is_placeholder_next_text(text):
+            return text
+    return None
+
+
+def _prune_workflow_items_from_next_up(state: dict[str, Any], *, keep_text: str | None = None) -> list[str]:
+    removed: list[str] = []
+    kept: list[dict[str, str]] = []
+    keep_lower = (keep_text or "").strip().lower()
+    for item in state.get("tasks", {}).get("next_up", []):
+        text = (item.get("text") or "").strip()
+        if text and _is_workflow_follow_up_text(text) and text.lower() != keep_lower:
+            removed.append(text)
+            continue
+        kept.append(item)
+    state.setdefault("tasks", {})["next_up"] = _dedupe_tasks(kept)
+    return removed
+
+
+def repair_handoff_state(repo_root: Path) -> dict[str, Any]:
+    state = load_workspace_state(repo_root)
+    timestamp = utc_now()
+    primary = _primary_handoff_next(state) or "确认下一个具体任务"
+    current = state.setdefault("current", {})
+    before = {
+        "next_action": current.get("next_action"),
+        "next_product_task": current.get("next_product_task"),
+        "next_up_first": (state.get("tasks", {}).get("next_up") or [{}])[0].get("text"),
+    }
+    removed = _prune_workflow_items_from_next_up(state, keep_text=primary)
+    current["next_action"] = primary
+    current["next_product_task"] = primary
+    current["updated_at"] = timestamp
+    current["last_action"] = "handoff_repaired"
+    state.setdefault("tasks", {}).setdefault("next_up", [])
+    state["tasks"]["next_up"] = _refresh_next_up(
+        state["tasks"].get("next_up", []),
+        next_action=primary,
+        timestamp=timestamp,
+        source="repair-handoff",
+        remove_texts=[before.get("next_action"), before.get("next_product_task")],
+    )
+    _append_session(
+        state,
+        title="handoff repaired",
+        lines=[f"Next action: {primary}", f"Removed workflow backlog items: {', '.join(removed) or 'none'}"],
+        timestamp=timestamp,
+    )
+    save_workspace_state(repo_root, state)
+    append_event(repo_root, "handoff_repaired", {"before": before, "next_action": primary, "removed_workflow_backlog": removed})
+    render_views(repo_root)
+    return {"repo_root": str(repo_root), "next_action": primary, "removed_workflow_backlog": removed, "before": before}
+
+
+def diagnose_handoff_consistency(repo_root: Path) -> dict[str, Any]:
+    state = load_workspace_state(repo_root)
+    current = state.get("current", {})
+    tasks = state.get("tasks", {})
+    expected = _primary_handoff_next(state) or "确认下一个具体任务"
+    fields: dict[str, str | None] = {
+        "current.next_action": current.get("next_action"),
+        "current.next_product_task": current.get("next_product_task"),
+        "tasks.next_up[0]": (tasks.get("next_up") or [{}])[0].get("text"),
+    }
+    start_here = view_file(repo_root, "START_HERE.md")
+    if start_here.exists():
+        text = start_here.read_text(encoding="utf-8")
+        fields["START_HERE.Current focus"] = _extract_line_value(text, "- Next action:")
+        fields["START_HERE.next_step"] = _extract_line_value(text, "- 下一步：")
+    next_action_view = view_file(repo_root, "NEXT_ACTION.md")
+    if next_action_view.exists():
+        text = next_action_view.read_text(encoding="utf-8")
+        fields["NEXT_ACTION.legacy"] = _extract_section_value(text, "Legacy combined next action")
+        fields["NEXT_ACTION.product"] = _extract_section_value(text, "Next product task")
+    status_view = view_file(repo_root, "STATUS.md")
+    if status_view.exists():
+        fields["STATUS.next_action"] = _extract_line_value(status_view.read_text(encoding="utf-8"), "- 下一步：")
+    mismatches = []
+    for name, value in fields.items():
+        clean = str(value or "").strip()
+        if clean and clean != expected:
+            mismatches.append({"field": name, "value": clean, "expected": expected})
+    workflow_backlog = [
+        (item.get("text") or "").strip()
+        for item in tasks.get("next_up", [])
+        if (item.get("text") or "").strip() and _is_workflow_follow_up_text((item.get("text") or "").strip())
+    ]
+    return {
+        "expected": expected,
+        "fields": fields,
+        "mismatches": mismatches,
+        "workflow_backlog": workflow_backlog,
+        "ok": not mismatches and not workflow_backlog,
+    }
 
 def bootstrap_workspace(repo_root: Path, scan: dict[str, Any], *, action: str, note: str | None = None) -> dict[str, Any]:
     state = _seed_state(repo_root, scan, action)

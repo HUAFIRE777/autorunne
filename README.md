@@ -11,7 +11,7 @@ Autorunne 解决的是这个问题。
 
 它会在项目里维护一个 `.autorunne/` 工作区，把项目上下文、任务、决策、会话记录、推荐命令、验证证据和下一步整理成稳定文件。你仍然用自己熟悉的工具写代码，Autorunne 只负责把项目状态留在仓库本地。
 
-## 0.6.26 重点
+## 0.6.27 重点
 
 这一版修的是一次真实复测暴露出来的交接一致性问题：任务已经完成、验证也通过，但不同入口看到的“下一步”不完全一致。
 
@@ -52,20 +52,20 @@ pipx install autorunne
 curl -fsSL https://raw.githubusercontent.com/HUAFIRE777/autorunne/main/scripts/install.sh | bash
 ```
 
-当前公开版本：**0.6.26**
+当前公开版本：**0.6.27**
 
 ## 发布 GitHub 版本说说
 
 每次发新版后，可以用脚本自动发一条 GitHub Discussions 更新：
 
 ```bash
-python scripts/publish_github_update.py --version 0.6.26
+python scripts/publish_github_update.py --version 0.6.27
 ```
 
 先预览、不发布：
 
 ```bash
-python scripts/publish_github_update.py --version 0.6.26 --dry-run
+python scripts/publish_github_update.py --version 0.6.27 --dry-run
 ```
 
 脚本使用本机 `gh` 登录态，不保存 token。
@@ -177,7 +177,8 @@ autorunne doctor
 7. [对外定位与销售话术](docs/Autorunne-对外定位与销售话术-ZH.md)
 8. [商业稳定性说明](docs/Autorunne-商业稳定性说明-ZH.md)
 9. [0.6.20 PyPI/GitHub 同步发布说明](docs/Autorunne-Release-Notes-0.6.20-ZH.md)
-10. [0.6.26 真实交接状态一致性补丁](docs/Autorunne-Release-Notes-0.6.26-ZH.md)
+10. [0.6.27 交接 doctor / repair 与 diff 分类加固](docs/Autorunne-Release-Notes-0.6.27-ZH.md)
+11. [0.6.26 真实交接状态一致性补丁](docs/Autorunne-Release-Notes-0.6.26-ZH.md)
 11. [0.6.25 交接洁净度补丁](docs/Autorunne-Release-Notes-0.6.25-ZH.md)
 12. [0.6.24 自动 Git 初始化](docs/Autorunne-Release-Notes-0.6.24-ZH.md)
 13. [0.6.23 git init 新手提醒](docs/Autorunne-Release-Notes-0.6.23-ZH.md)
@@ -189,7 +190,7 @@ autorunne doctor
 
 ## 当前阶段
 
-0.6.26 在 0.6.25 交接洁净度基础上继续修真实状态一致性：新项目仍然可以直接 `autorunne open`，同时任务完成后各个入口看到的主下一步保持一致。
+0.6.27 在 0.6.25 交接洁净度基础上继续修真实状态一致性：新项目仍然可以直接 `autorunne open`，同时任务完成后各个入口看到的主下一步保持一致。
 
 更准确地说：Autorunne 现在是一个可持续使用的 Beta 工作流层。它不是最终企业平台，但已经足够支撑真实项目里的“接着做”。
 
