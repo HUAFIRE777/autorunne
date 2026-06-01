@@ -4,6 +4,7 @@ import subprocess
 from pathlib import Path
 
 from autorunne.core.gitops import detect_repo_root
+from autorunne.core.memory import maybe_auto_compact
 from autorunne.core.paths import load_config, read_json, state_file
 from autorunne.core.scanner import scan_repo
 from autorunne.core.state_engine import collect_git_details, finish_task
@@ -71,6 +72,7 @@ def run(
         git_details=git_details,
         validation=validation,
     )
+    auto_compact = maybe_auto_compact(repo_root, reason="finish")
 
     return {
         "repo_root": str(repo_root),
@@ -82,4 +84,5 @@ def run(
         "changed_files_by_type": git_details.get("changed_files_by_type"),
         "raw_changed_files": git_details.get("raw_changed_files", git_details["changed_files"]),
         "validation": validation,
+        "auto_compact": auto_compact,
     }

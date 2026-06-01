@@ -15,6 +15,7 @@ RELEASE_NOTES_0620 = ROOT / "docs" / "Autorunne-Release-Notes-0.6.20-ZH.md"
 RELEASE_NOTES_0621 = ROOT / "docs" / "Autorunne-Release-Notes-0.6.21-ZH.md"
 RELEASE_NOTES_0622 = ROOT / "docs" / "Autorunne-Release-Notes-0.6.22-ZH.md"
 RELEASE_NOTES_0629 = ROOT / "docs" / "Autorunne-Release-Notes-0.6.29-ZH.md"
+RELEASE_NOTES_0630 = ROOT / "docs" / "Autorunne-Release-Notes-0.6.30-ZH.md"
 COMMERCIAL_STABILITY = ROOT / "docs" / "Autorunne-商业稳定性说明-ZH.md"
 
 
@@ -65,7 +66,7 @@ def test_business_docs_position_autorunne_as_repo_local_memory_layer():
     release = RELEASE_NOTES_0622.read_text(encoding="utf-8")
     commercial = COMMERCIAL_STABILITY.read_text(encoding="utf-8")
 
-    assert "当前版本定位：0.6.29" in product
+    assert "当前版本定位：0.6.30" in product
     assert "repo-local 项目记忆" in product
     assert "frontend/backend/contracts" in product
     assert "商业稳定性结论" in product
@@ -111,11 +112,20 @@ def test_release_notes_0616_documents_status_visualization():
 
 
 def test_release_notes_0629_documents_long_term_memory_commands():
-    readme = (ROOT / "README.md").read_text(encoding="utf-8")
     release = RELEASE_NOTES_0629.read_text(encoding="utf-8")
-    assert "0.6.29" in readme
     assert "autorunne compact" in release
     assert "autorunne memory-report" in release
     assert "autorunne export-session" in release
     assert "默认保留 200 条" in release
     assert "PyPI：`autorunne==0.6.29`" in release
+
+
+def test_release_notes_0630_documents_auto_compaction_defaults():
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    release = RELEASE_NOTES_0630.read_text(encoding="utf-8")
+    assert "0.6.30" in readme
+    assert "默认超过 1000 条" in release
+    assert "保留最近 200 条" in release
+    assert "auto_compact_threshold" in release
+    assert "auto_compact_enabled" in release
+    assert "PyPI：`autorunne==0.6.30`" in release

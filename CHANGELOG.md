@@ -2,6 +2,21 @@
 
 All notable changes to Autorunne are documented here.
 
+## 0.6.30 - 2026-06-01
+
+### Added
+- Added automatic long-term memory compaction after common write commands once repo-local session/event records exceed the configured threshold.
+- Added config defaults `auto_compact_enabled=true`, `auto_compact_threshold=1000`, and `auto_compact_keep_sessions=200`.
+- Wired auto-compaction checks into `open`, `sync`, `ingest`/`hermes-task`, `start`, `checkpoint`, and `finish`.
+
+### Design
+- The default trigger is 1000 records rather than 500 so long-running AI development projects have room to keep detailed recent context before any automatic archive write.
+- Automatic compaction still keeps the latest 200 detailed records and archives older sessions/events to `.autorunne/archive/YYYY-MM.md`; history is summarized, not silently deleted.
+- Users can lower the threshold to 500 or disable automatic compaction in `.autorunne/config.json`.
+
+### Verification
+- Added regression coverage proving auto-compaction runs after a normal write when the threshold is exceeded and can be disabled by config.
+
 ## 0.6.29 - 2026-06-01
 
 ### Added

@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from autorunne.core.paths import ensure_dir, state_file, workflow_dir, workflow_file
+from autorunne.core.paths import ensure_dir, load_config, state_file, workflow_dir, workflow_file
 from autorunne.core.state_engine import append_event, load_events, load_workspace_state, render_views, save_workspace_state, utc_now
 
 
@@ -254,3 +254,43 @@ def compact_memory(repo_root: Path, *, keep_sessions: int = 200, dry_run: bool =
     workflow_file(repo_root, "SUMMARY.md").write_text(summary_text, encoding="utf-8")
     render_views(repo_root)
     return result
+
+
+def maybe_auto_compact(repo_root: Path, *, reason: str = "command") -> dict[str, Any]:
+    """Run safe automatic compaction when repo-local memory grows past config limits.
+
+    Defaults are intentionally conservative: auto compaction only starts after
+    1000 detailed session/event records, and keeps the most recent 200 records.
+    Older records are archived, not deleted.
+    """
+    config = load_config(repo_root)
+    enabled = bool(getattr(config, "auto_compact_enabled", True))
+    threshold = int(getattr(config, "auto_compact_threshold", 1000) or 0)
+    keep_sessions = int(getattr(config, "auto_compact_keep_sessions", 200) or 200)
+    state = load_workspace_state(repo_root)
+    session_count = len(state.get("sessions", {}).get("items", []))
+    event_count = len(load_events(repo_root))
+    result: dict[str, Any] = {
+        "auto_compact": False,
+        "enabled": enabled,
+        "threshold": threshold,
+        "keep_sessions": keep_sessions,
+        "session_count": session_count,
+        "event_count": event_count,
+        "reason": reason,
+    }
+    if not enabled:
+        result["skipped"] = "disabled"
+        return result
+    if threshold < 1:
+        result["skipped"] = "threshold_disabled"
+        return result
+    if keep_sessions < 1:
+        keep_sessions = 200
+        result["keep_sessions"] = keep_sessions
+    if max(session_count, event_count) <= threshold:
+        result["skipped"] = "below_threshold"
+        return result
+    compacted = compact_memory(repo_root, keep_sessions=keep_sessions, dry_run=False)
+    compacted.update({"auto_compact": True, "threshold": threshold, "reason": reason})
+    return compacted

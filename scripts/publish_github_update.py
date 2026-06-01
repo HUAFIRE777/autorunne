@@ -102,6 +102,20 @@ def default_body(version: str) -> str:
     release_url = f"https://github.com/HUAFIRE777/autorunne/releases/tag/v{version}"
     pypi_url = f"https://pypi.org/project/autorunne/{version}/"
 
+    if version == "0.6.30":
+        intro = """Autorunne 0.6.30 发布了。
+
+这版把 0.6.29 的长期项目记忆管理继续自动化：项目反复迭代时，Autorunne 会自动写入进展；记录超过默认阈值后，自动把旧历史压缩归档。"""
+        bullets = """
+- 默认超过 1000 条 session/event 后自动 compact
+- 自动 compact 默认保留最近 200 条详细记录
+- 更早历史归档到 `.autorunne/archive/YYYY-MM.md`，不是直接删除
+- 新增配置：`auto_compact_enabled`、`auto_compact_threshold`、`auto_compact_keep_sessions`
+- 已接入 open/sync/ingest/start/checkpoint/finish 等常用写入路径
+""".strip()
+        why = """简单说：用户不用每天盯 `.autorunne/` 有多少记录。Autorunne 平时持续记录项目进展，记录太多时自动收纳旧历史，handoff 入口继续保持短而清楚。"""
+        return f"""{intro}\n\n{bullets}\n\n{why}\n\n升级：\n\n```bash\npipx upgrade autorunne --pip-args=\"--no-cache-dir -i https://pypi.org/simple\"\n```\n\n检查版本：\n\n```bash\nautorunne --version\n```\n\n查看项目记忆体积：\n\n```bash\nautorunne memory-report\n```\n\n如需改成 500 条触发，可编辑 `.autorunne/config.json`：\n\n```json\n{{\n  \"auto_compact_threshold\": 500,\n  \"auto_compact_keep_sessions\": 200\n}}\n```\n\nRelease: {release_url}\nPyPI: {pypi_url}\n""".strip()
+
     if version == "0.6.29":
         intro = """Autorunne 0.6.29 发布了。
 
@@ -274,6 +288,7 @@ def main() -> int:
 
     version = args.version.removeprefix("v")
     default_titles = {
+        "0.6.30": "Autorunne 0.6.30 发布：自动长期记忆压缩",
         "0.6.29": "Autorunne 0.6.29 发布：长期项目记忆管理",
         "0.6.28": "Autorunne 0.6.28 发布：status / doctor 干净度补丁",
         "0.6.27": "Autorunne 0.6.27 发布：交接 doctor / repair 与 diff 分类加固",

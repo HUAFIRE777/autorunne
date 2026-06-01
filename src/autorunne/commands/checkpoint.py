@@ -4,6 +4,7 @@ from pathlib import Path
 
 from autorunne.commands.finish import FinishValidationError, _resolve_validation_command, _run_validation
 from autorunne.core.gitops import detect_repo_root
+from autorunne.core.memory import maybe_auto_compact
 from autorunne.core.state_engine import collect_git_details, record_checkpoint
 
 
@@ -23,9 +24,11 @@ def run(
     resolved_validation_command = _resolve_validation_command(repo_root, validation_command, skip_validation)
     validation = _run_validation(repo_root, resolved_validation_command)
     record_checkpoint(repo_root, clean_summary, resolved_next_action, collect_git_details(repo_root), validation=validation)
+    auto_compact = maybe_auto_compact(repo_root, reason="checkpoint")
     return {
         "repo_root": str(repo_root),
         "summary": clean_summary,
         "next_action": resolved_next_action,
         "validation": validation,
+        "auto_compact": auto_compact,
     }

@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from autorunne.core.gitops import detect_repo_root
+from autorunne.core.memory import maybe_auto_compact
 from autorunne.core.paths import migrate_config
 from autorunne.core.scanner import recommend_next_action, scan_repo
 from autorunne.core.state_engine import sync_workspace
@@ -17,4 +18,5 @@ def run(target: Path, note: str | None = None, action: str = "workspace_synced")
     scan["next_action"] = recommend_next_action(scan)
     state = sync_workspace(repo_root, scan, action=action, note=note)
     scan["next_action"] = state["current"]["next_action"]
-    return {"repo_root": str(repo_root), "scan": scan}
+    auto_compact = maybe_auto_compact(repo_root, reason=action)
+    return {"repo_root": str(repo_root), "scan": scan, "auto_compact": auto_compact}

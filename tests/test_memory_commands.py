@@ -45,6 +45,13 @@ def _append_event(repo: Path, idx: int, month: str = "2026-01") -> None:
         handle.write(json.dumps(event, ensure_ascii=False) + "\n")
 
 
+def _update_config(repo: Path, **updates) -> None:
+    path = repo / ".autorunne" / "config.json"
+    data = json.loads(path.read_text(encoding="utf-8"))
+    data.update(updates)
+    path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+
 def test_memory_report_recommends_compaction_when_records_exceed_window(python_repo: Path):
     _run_in(python_repo, ["open"])
     for idx in range(6):
@@ -116,3 +123,48 @@ def test_export_session_writes_shareable_markdown(python_repo: Path):
     assert "Autorunne Session Export" in text
     assert "test session 3" in text
     assert "event 3" in text
+
+
+def test_auto_compact_runs_after_common_write_when_threshold_is_exceeded(python_repo: Path):
+    _run_in(python_repo, ["open"])
+    _update_config(
+        python_repo,
+        auto_compact_enabled=True,
+        auto_compact_threshold=5,
+        auto_compact_keep_sessions=3,
+    )
+    for idx in range(6):
+        _append_session(python_repo, idx)
+        _append_event(python_repo, idx)
+
+    result = _run_in(python_repo, ["start", "--task", "trigger auto compact"])
+
+    assert result.exit_code == 0
+    assert (python_repo / ".autorunne" / "archive" / "2026-01.md").exists()
+    assert (python_repo / ".autorunne" / "SUMMARY.md").exists()
+    sessions = json.loads((python_repo / ".autorunne" / "state" / "sessions.json").read_text(encoding="utf-8"))["items"]
+    assert len(sessions) == 4  # 3 recent + compaction session
+    assert sessions[-1]["title"] == "memory compacted"
+    events = (python_repo / ".autorunne" / "state" / "events.jsonl").read_text(encoding="utf-8").splitlines()
+    assert len(events) == 4  # 3 recent + compaction event
+    assert "memory_compacted" in events[-1]
+
+
+def test_auto_compact_can_be_disabled_in_config(python_repo: Path):
+    _run_in(python_repo, ["open"])
+    _update_config(
+        python_repo,
+        auto_compact_enabled=False,
+        auto_compact_threshold=5,
+        auto_compact_keep_sessions=3,
+    )
+    for idx in range(6):
+        _append_session(python_repo, idx)
+        _append_event(python_repo, idx)
+
+    result = _run_in(python_repo, ["start", "--task", "do not auto compact"])
+
+    assert result.exit_code == 0
+    assert not (python_repo / ".autorunne" / "archive" / "2026-01.md").exists()
+    sessions = json.loads((python_repo / ".autorunne" / "state" / "sessions.json").read_text(encoding="utf-8"))["items"]
+    assert len(sessions) > 5

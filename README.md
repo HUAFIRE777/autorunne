@@ -11,17 +11,18 @@ Autorunne 解决的是这个问题。
 
 它会在项目里维护一个 `.autorunne/` 工作区，把项目上下文、任务、决策、会话记录、推荐命令、验证证据和下一步整理成稳定文件。你仍然用自己熟悉的工具写代码，Autorunne 只负责把项目状态留在仓库本地。
 
-## 0.6.29 重点
+## 0.6.30 重点
 
-这一版把 Autorunne 从“开发交接层”继续推进到“长期项目记忆层”：项目从创建、迭代、上线到日常维护，都可以让 `.autorunne/` 一直伴随存在，但不会让日志无限膨胀。
+这一版把 0.6.29 的长期项目记忆管理继续自动化：平时不用手动盯记录数量，项目记忆超过安全阈值后会自动压缩归档。
 
-- 新增 `autorunne compact`，默认保留最近 200 条详细 session/event，把更早历史压缩归档到 `.autorunne/archive/`。
-- 新增 `autorunne compact --dry-run`，先预览会归档多少记录和写哪些文件，不直接改状态。
+- 新增自动压缩：常用写入命令后会检查 session/event 数量，默认超过 1000 条自动 compact。
+- 自动压缩默认仍保留最近 200 条详细 session/event，把更早历史压缩归档到 `.autorunne/archive/`。
+- 保留手动 `autorunne compact --dry-run`，需要时仍可先预览会归档多少记录和写哪些文件。
 - 新增 `autorunne memory-report`，显示 `.autorunne` 总大小、sessions/events 数量、最大文件和是否建议 compact。
 - 新增 `autorunne export-session`，把最近开发记录导出成适合客户交付、教学复盘或团队同步的 Markdown 报告。
 - 新增 `.autorunne/SUMMARY.md` 长期摘要：当前状态、最近完成、下一步、关键决策和长期记忆策略。
 
-简单说：Autorunne 不保存完整聊天废料，而是保留近期上下文、归档长期历史，让下一个 agent 既能接上项目，又不会被旧日志淹没。
+简单说：Autorunne 平时自动写项目记忆；记录很多时自动收纳旧历史，默认 1000 条触发、保留最近 200 条详细上下文。
 
 ## 适合谁
 
@@ -53,20 +54,20 @@ pipx install autorunne
 curl -fsSL https://raw.githubusercontent.com/HUAFIRE777/autorunne/main/scripts/install.sh | bash
 ```
 
-当前公开版本：**0.6.29**
+当前公开版本：**0.6.30**
 
 ## 发布 GitHub 版本说说
 
 每次发新版后，可以用脚本自动发一条 GitHub Discussions 更新：
 
 ```bash
-python scripts/publish_github_update.py --version 0.6.29
+python scripts/publish_github_update.py --version 0.6.30
 ```
 
 先预览、不发布：
 
 ```bash
-python scripts/publish_github_update.py --version 0.6.29 --dry-run
+python scripts/publish_github_update.py --version 0.6.30 --dry-run
 ```
 
 脚本使用本机 `gh` 登录态，不保存 token。
@@ -186,7 +187,8 @@ autorunne export-session --last 20
 7. [对外定位与销售话术](docs/Autorunne-对外定位与销售话术-ZH.md)
 8. [商业稳定性说明](docs/Autorunne-商业稳定性说明-ZH.md)
 9. [0.6.20 PyPI/GitHub 同步发布说明](docs/Autorunne-Release-Notes-0.6.20-ZH.md)
-10. [0.6.29 长期项目记忆管理](docs/Autorunne-Release-Notes-0.6.29-ZH.md)
+10. [0.6.30 自动长期记忆压缩](docs/Autorunne-Release-Notes-0.6.30-ZH.md)
+11. [0.6.29 长期项目记忆管理](docs/Autorunne-Release-Notes-0.6.29-ZH.md)
 11. [0.6.28 status / doctor 干净度补丁](docs/Autorunne-Release-Notes-0.6.28-ZH.md)
 11. [0.6.27 交接 doctor / repair 与 diff 分类加固](docs/Autorunne-Release-Notes-0.6.27-ZH.md)
 11. [0.6.26 真实交接状态一致性补丁](docs/Autorunne-Release-Notes-0.6.26-ZH.md)
@@ -201,7 +203,7 @@ autorunne export-session --last 20
 
 ## 当前阶段
 
-0.6.29 让 Autorunne 更适合长期陪伴项目：近期 200 条详细记录保留给 agent 理解上下文，更早历史归档成阶段摘要，当前交接入口继续保持短而清楚。
+0.6.30 让长期项目记忆更省心：Autorunne 会自动写入项目进展，默认超过 1000 条 session/event 后自动压缩，保留最近 200 条详细上下文，更早历史归档成阶段摘要。
 
 更准确地说：Autorunne 现在是一个可持续使用的 Beta 项目记忆层。它不是最终企业平台，但已经足够支撑真实项目里的“接着做”和上线后的日常维护。
 

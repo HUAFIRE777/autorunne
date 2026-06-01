@@ -5,6 +5,7 @@ from pathlib import Path
 from autorunne.commands import adopt as adopt_cmd
 from autorunne.commands import sync as sync_cmd
 from autorunne.core.gitops import ensure_git_repo
+from autorunne.core.memory import maybe_auto_compact
 from autorunne.core.paths import view_file
 from autorunne.core.integrations import install_integrations
 from autorunne.core.state_engine import record_integration, workflow_exists
@@ -28,6 +29,7 @@ def run(target: Path, with_vscode: bool = False) -> dict:
     vscode_result = None
     if with_vscode:
         vscode_result = install_vscode_integration(repo_root)
+    auto_compact = maybe_auto_compact(repo_root, reason="open")
 
     return {
         "action": action,
@@ -38,4 +40,5 @@ def run(target: Path, with_vscode: bool = False) -> dict:
         "vscode": vscode_result,
         "integration": integration,
         "initialized_git": initialized_git,
+        "auto_compact": auto_compact,
     }
