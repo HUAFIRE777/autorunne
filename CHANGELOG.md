@@ -2,6 +2,22 @@
 
 All notable changes to Autorunne are documented here.
 
+## 0.6.29 - 2026-06-01
+
+### Added
+- Added `autorunne compact` to keep long-running project memory manageable: recent detailed records stay available, while older sessions/events are summarized into `.autorunne/archive/YYYY-MM.md`.
+- Added `autorunne compact --dry-run` so users can preview the compaction plan before any state files are changed.
+- Added `autorunne memory-report` to show `.autorunne` size, session/event counts, largest files, and compaction guidance.
+- Added `autorunne export-session` to export recent Autorunne sessions/events into a shareable Markdown report for handoff, teaching, or client delivery.
+- Added `.autorunne/SUMMARY.md` as a compact long-term project memory summary generated during compaction.
+
+### Design
+- The default compaction window keeps 200 recent detailed session/event records so agents retain useful context without forcing every handoff to read old logs.
+- Older project history is archived and summarized rather than silently deleted, preserving the idea that Autorunne can live alongside a project from creation through launch and maintenance.
+
+### Verification
+- Added regression coverage for memory reporting, dry-run safety, compaction archive output, summary generation, and session export.
+
 ## 0.6.28 - 2026-05-20
 
 ### Fixed

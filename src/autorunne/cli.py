@@ -25,6 +25,7 @@ from autorunne.commands import hooks as hooks_cmd
 from autorunne.commands import ingest as ingest_cmd
 from autorunne.commands import init as init_cmd
 from autorunne.commands import integrate as integrate_cmd
+from autorunne.commands import memory as memory_cmd
 from autorunne.commands import migrate as migrate_cmd
 from autorunne.commands import open as open_cmd
 from autorunne.commands import record as record_cmd
@@ -624,6 +625,61 @@ def export_command(
     """Create a clean release copy without Autorunne files."""
     result = _run_or_exit(lambda: export_cmd.run(_target(path), output_name=output_name))
     console.print(f"Exported clean copy to [bold]{result['exported_path']}[/bold]")
+
+
+@app.command("memory-report")
+def memory_report(
+    path: str | None = typer.Option(None, help="Target repository path"),
+    keep_sessions: int = typer.Option(200, min=1, help="Recent detailed records to keep before suggesting compaction."),
+):
+    """Show Autorunne project-memory size and compaction guidance."""
+    result = _run_or_exit(lambda: memory_cmd.report(_target(path), keep_sessions=keep_sessions))
+    table = Table(title="Autorunne Memory Report")
+    table.add_column("Field")
+    table.add_column("Value")
+    table.add_row("Autorunne root", result["workflow_root"])
+    table.add_row("Total size", result["human_total_size"])
+    table.add_row("Sessions / events", f"{result['session_count']} / {result['event_count']}")
+    table.add_row("Keep detailed records", str(result["keep_sessions"]))
+    table.add_row("Recommendation", result["recommendation"])
+    console.print(table)
+    if result.get("largest_files"):
+        console.print("Largest files:")
+        for item in result["largest_files"][:5]:
+            console.print(f"- {item['human_size']}  {item['path']}")
+
+
+@app.command("export-session")
+def export_session_command(
+    path: str | None = typer.Option(None, help="Target repository path"),
+    last: int = typer.Option(20, min=1, help="How many recent sessions/events to export when --since is not used."),
+    since: str | None = typer.Option(None, help="Export records since YYYY-MM-DD or a supported timestamp."),
+    output: str | None = typer.Option(None, help="Optional output markdown file path."),
+):
+    """Export recent Autorunne session history into a shareable markdown report."""
+    result = _run_or_exit(lambda: memory_cmd.export(_target(path), last=last, since=since, output=output))
+    console.print(f"Session export: [bold]{result['path']}[/bold]")
+    console.print(f"Sessions / events exported: {result['sessions']} / {result['events']}")
+
+
+@app.command("compact")
+def compact_command(
+    path: str | None = typer.Option(None, help="Target repository path"),
+    keep_sessions: int = typer.Option(200, min=1, help="How many recent detailed session/event records to keep."),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Preview compaction without writing files."),
+):
+    """Compact long-running Autorunne memory by archiving older records and keeping recent context."""
+    result = _run_or_exit(lambda: memory_cmd.compact(_target(path), keep_sessions=keep_sessions, dry_run=dry_run))
+    prefix = "Compact preview" if result.get("dry_run") else "Compacted Autorunne memory"
+    console.print(f"{prefix}: [bold]{result['repo_root']}[/bold]")
+    console.print(f"Kept recent detailed records: {result['keep_sessions']}")
+    console.print(f"Sessions: {result['sessions_before']} -> {result['sessions_after']} (archived {result['archived_sessions']})")
+    console.print(f"Events: {result['events_before']} -> {result['events_after']} (archived {result['archived_events']})")
+    if result.get("archive_files"):
+        console.print("Archive files:")
+        for path_item in result["archive_files"]:
+            console.print(f"- {path_item}")
+    console.print(f"Summary: {result['summary_path']}")
 
 
 @app.command()

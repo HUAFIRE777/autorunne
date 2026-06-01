@@ -102,6 +102,20 @@ def default_body(version: str) -> str:
     release_url = f"https://github.com/HUAFIRE777/autorunne/releases/tag/v{version}"
     pypi_url = f"https://pypi.org/project/autorunne/{version}/"
 
+    if version == "0.6.29":
+        intro = """Autorunne 0.6.29 发布了。
+
+这版把 Autorunne 从“开发交接层”继续推进到“长期项目记忆层”：项目从创建、反复迭代、上线，到后期维护，`.autorunne/` 都可以一直伴随存在，但不会让日志无限膨胀。"""
+        bullets = """
+- 新增 `autorunne compact`：默认保留最近 200 条详细记录，更早历史归档到 `.autorunne/archive/`
+- 新增 `autorunne compact --dry-run`：先预览会压缩什么，不直接改状态
+- 新增 `autorunne memory-report`：查看 `.autorunne` 体积、sessions/events 数量和是否建议 compact
+- 新增 `autorunne export-session`：把最近开发记录导出成可分享的 Markdown 报告
+- compact 会生成 `.autorunne/SUMMARY.md`，沉淀长期项目摘要、关键决策和下一步
+""".strip()
+        why = """简单说：Autorunne 不保存完整聊天垃圾，而是保留近期上下文、归档长期历史，让下一个 agent 既能接上项目，又不会被旧日志淹没。"""
+        return f"""{intro}\n\n{bullets}\n\n{why}\n\n升级：\n\n```bash\npipx upgrade autorunne --pip-args=\"--no-cache-dir -i https://pypi.org/simple\"\n```\n\n检查版本：\n\n```bash\nautorunne --version\n```\n\n查看项目记忆体积：\n\n```bash\nautorunne memory-report\n```\n\n预览长期记忆压缩：\n\n```bash\nautorunne compact --dry-run\n```\n\nRelease: {release_url}\nPyPI: {pypi_url}\n""".strip()
+
     if version == "0.6.28":
         intro = """Autorunne 0.6.28 发布了。
 
@@ -260,6 +274,7 @@ def main() -> int:
 
     version = args.version.removeprefix("v")
     default_titles = {
+        "0.6.29": "Autorunne 0.6.29 发布：长期项目记忆管理",
         "0.6.28": "Autorunne 0.6.28 发布：status / doctor 干净度补丁",
         "0.6.27": "Autorunne 0.6.27 发布：交接 doctor / repair 与 diff 分类加固",
         "0.6.26": "Autorunne 0.6.26 发布：真实交接状态一致性修复",
