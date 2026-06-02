@@ -347,7 +347,7 @@ def start(
 
 @app.command()
 def checkpoint(
-    summary: str = typer.Option(..., help="Short progress note for the current task."),
+    summary: str = typer.Option("", "--summary", help="Short progress note for the current task. If omitted, Autorunne generates one from local state and changed files."),
     next: str | None = typer.Option(None, "--next", help="Optional next action to update immediately."),
     validate: str | None = typer.Option(None, "--validate", help="Optional validation command to run before checkpoint succeeds."),
     no_validate: bool = typer.Option(False, "--no-validate", help="Skip automatic validation for this checkpoint call."),
@@ -377,7 +377,7 @@ def checkpoint(
 
 @app.command()
 def finish(
-    summary: str = typer.Option(..., help="Concise summary of what was completed."),
+    summary: str = typer.Option("", "--summary", help="Concise summary of what was completed. If omitted, Autorunne generates one from the active task and changed files."),
     next: str | None = typer.Option(None, "--next", help="Concrete next step to write into NEXT_ACTION.md."),
     task: str | None = typer.Option(None, "--task", help="Optional open task text to close inside TASKS.md."),
     decision: str | None = typer.Option(None, "--decision", help="Optional durable decision to append to DECISIONS.md."),

@@ -7,6 +7,7 @@ from autorunne.core.gitops import detect_repo_root
 from autorunne.core.memory import maybe_auto_compact
 from autorunne.core.paths import load_config, read_json, state_file
 from autorunne.core.scanner import scan_repo
+from autorunne.core.summaries import generate_finish_summary
 from autorunne.core.state_engine import collect_git_details, finish_task
 
 
@@ -47,7 +48,7 @@ def _run_validation(repo_root: Path, command: str | None) -> dict | None:
 
 def run(
     target: Path,
-    summary: str,
+    summary: str | None = None,
     next_action: str | None = None,
     task_match: str | None = None,
     decision: str | None = None,
@@ -58,11 +59,11 @@ def run(
     if not (repo_root / ".git").exists():
         raise RuntimeError("autorunne finish needs a Git repository first. ⏰ Run `git init` first, then rerun `autorunne finish`.")
 
-    clean_summary = summary.strip()
     resolved_next_action = next_action.strip() if next_action else _read_current_next_action(repo_root)
     resolved_validation_command = _resolve_validation_command(repo_root, validation_command, skip_validation)
     validation = _run_validation(repo_root, resolved_validation_command)
     git_details = collect_git_details(repo_root)
+    clean_summary = summary.strip() if summary and summary.strip() else generate_finish_summary(repo_root, git_details, task_match)
     _, matched_task = finish_task(
         repo_root,
         summary=clean_summary,

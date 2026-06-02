@@ -2,6 +2,20 @@
 
 All notable changes to Autorunne are documented here.
 
+## 0.6.31 - 2026-06-02
+
+### Fixed
+- `autorunne checkpoint` now accepts calls without `--summary` and automatically generates a local progress summary from changed files or the active task.
+- `autorunne finish` now also accepts calls without `--summary`, generating a completion summary from the active task and changed files.
+- Older wrappers/agent instructions that still call plain `autorunne checkpoint` / `autorunne finish` no longer break the zero-prompt workflow.
+
+### Improved
+- Repo handoff text now tells agents to generate workflow summaries themselves and never ask users to write checkpoint/finish notes.
+- Explicit `--summary` remains supported, so old and new usage styles can run in parallel.
+
+### Verification
+- Added regression coverage for checkpoint and finish without `--summary`.
+
 ## 0.6.30 - 2026-06-01
 
 ### Added

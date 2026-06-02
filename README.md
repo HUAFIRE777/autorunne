@@ -11,18 +11,17 @@ Autorunne 解决的是这个问题。
 
 它会在项目里维护一个 `.autorunne/` 工作区，把项目上下文、任务、决策、会话记录、推荐命令、验证证据和下一步整理成稳定文件。你仍然用自己熟悉的工具写代码，Autorunne 只负责把项目状态留在仓库本地。
 
-## 0.6.30 重点
+## 0.6.31 重点
 
-这一版把 0.6.29 的长期项目记忆管理继续自动化：平时不用手动盯记录数量，项目记忆超过安全阈值后会自动压缩归档。
+这一版补上“用户不写流程说明”的自动化层：`checkpoint` / `finish` 可以不传 `--summary`，Autorunne 会根据当前任务和改动文件自动生成进度说明。
 
-- 新增自动压缩：常用写入命令后会检查 session/event 数量，默认超过 1000 条自动 compact。
-- 自动压缩默认仍保留最近 200 条详细 session/event，把更早历史压缩归档到 `.autorunne/archive/`。
-- 保留手动 `autorunne compact --dry-run`，需要时仍可先预览会归档多少记录和写哪些文件。
-- 新增 `autorunne memory-report`，显示 `.autorunne` 总大小、sessions/events 数量、最大文件和是否建议 compact。
-- 新增 `autorunne export-session`，把最近开发记录导出成适合客户交付、教学复盘或团队同步的 Markdown 报告。
-- 新增 `.autorunne/SUMMARY.md` 长期摘要：当前状态、最近完成、下一步、关键决策和长期记忆策略。
+- `autorunne checkpoint` 不再因为缺少 `--summary` 打断旧 wrapper / agent 流程。
+- `autorunne finish` 也支持自动生成完成总结，用户仍然只需要直接派任务。
+- 兼容旧调用方式和新调用方式：传了 `--summary` 就使用明确说明；没传就自动 fallback。
+- 生成的 repo handoff 文案会提醒 agent 自主记录，不要向用户索要 workflow summary。
+- 继续保留 0.6.30 的自动长期记忆压缩。
 
-简单说：Autorunne 平时自动写项目记忆；记录很多时自动收纳旧历史，默认 1000 条触发、保留最近 200 条详细上下文。
+简单说：用户不用管理 Autorunne 命令细节，agent 自己收口、自己写项目记忆。
 
 ## 适合谁
 
@@ -54,20 +53,20 @@ pipx install autorunne
 curl -fsSL https://raw.githubusercontent.com/HUAFIRE777/autorunne/main/scripts/install.sh | bash
 ```
 
-当前公开版本：**0.6.30**
+当前公开版本：**0.6.31**
 
 ## 发布 GitHub 版本说说
 
 每次发新版后，可以用脚本自动发一条 GitHub Discussions 更新：
 
 ```bash
-python scripts/publish_github_update.py --version 0.6.30
+python scripts/publish_github_update.py --version 0.6.31
 ```
 
 先预览、不发布：
 
 ```bash
-python scripts/publish_github_update.py --version 0.6.30 --dry-run
+python scripts/publish_github_update.py --version 0.6.31 --dry-run
 ```
 
 脚本使用本机 `gh` 登录态，不保存 token。
@@ -93,7 +92,7 @@ autorunne open --with-vscode
 常用收尾命令：
 
 ```bash
-autorunne finish --summary "完成登录修复" --validate "python -m pytest -q" --next "继续做订单筛选"
+autorunne finish --validate "python -m pytest -q" --next "继续做订单筛选"
 ```
 
 ## 仓库里会多出什么
@@ -161,8 +160,8 @@ autorunne ingest --source codex --task "继续支付回调" --next "先补 webho
 
 # 开始 / 检查点 / 完成
 autorunne start --task "实现支付回调" --next "先写测试"
-autorunne checkpoint --summary "已理清 payload" --next "接 handler"
-autorunne finish --summary "支付回调完成" --validate "pytest -q" --next "补发布说明"
+autorunne checkpoint --next "接 handler"   # summary 可省略，Autorunne 会自动生成
+autorunne finish --validate "pytest -q" --next "补发布说明"
 
 # 查看当前状态
 autorunne status
@@ -187,6 +186,7 @@ autorunne export-session --last 20
 7. [对外定位与销售话术](docs/Autorunne-对外定位与销售话术-ZH.md)
 8. [商业稳定性说明](docs/Autorunne-商业稳定性说明-ZH.md)
 9. [0.6.20 PyPI/GitHub 同步发布说明](docs/Autorunne-Release-Notes-0.6.20-ZH.md)
+10. [0.6.31 自动 summary fallback](docs/Autorunne-Release-Notes-0.6.31-ZH.md)
 10. [0.6.30 自动长期记忆压缩](docs/Autorunne-Release-Notes-0.6.30-ZH.md)
 11. [0.6.29 长期项目记忆管理](docs/Autorunne-Release-Notes-0.6.29-ZH.md)
 11. [0.6.28 status / doctor 干净度补丁](docs/Autorunne-Release-Notes-0.6.28-ZH.md)
@@ -203,7 +203,7 @@ autorunne export-session --last 20
 
 ## 当前阶段
 
-0.6.30 让长期项目记忆更省心：Autorunne 会自动写入项目进展，默认超过 1000 条 session/event 后自动压缩，保留最近 200 条详细上下文，更早历史归档成阶段摘要。
+0.6.31 让自动化更顺手：用户只派任务，agent / wrapper 可以直接调用 checkpoint 或 finish，Autorunne 自动生成 summary，不再因为缺少流程说明打断。
 
 更准确地说：Autorunne 现在是一个可持续使用的 Beta 项目记忆层。它不是最终企业平台，但已经足够支撑真实项目里的“接着做”和上线后的日常维护。
 

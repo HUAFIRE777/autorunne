@@ -95,11 +95,11 @@ autorunne ingest --source codex --task "修复订单筛选" --next "先补测试
 autorunne finish --summary "订单筛选修复完成" --validate "pytest -q" --next "整理发布说明"
 ```
 
-## 当前版本定位：0.6.30
+## 当前版本定位：0.6.31
 
 ## 6. 当前版本定位
 
-当前公开版本：**0.6.30**。
+当前公开版本：**0.6.31**。
 
 这个版本已经适合：
 
@@ -128,4 +128,4 @@ Autorunne 最适合成为 AI 时代的软件项目“持续开发操作层”。
 
 ## 商业稳定性结论
 
-0.6.30 是可商用验证的 Beta 项目记忆层，适合教学 + 交付 + 顾问服务里的早期验证；这一版在 compact/archive/memory-report/export-session 基础上加入自动压缩，默认超过 1000 条记录触发、保留最近 200 条详细上下文，让项目记忆可以长期陪伴项目但不无限膨胀。
+0.6.31 是可商用验证的 Beta 项目记忆层，适合教学 + 交付 + 顾问服务里的早期验证；这一版让 checkpoint/finish 的 summary 进入自动化 fallback：用户只派任务，不需要手写流程说明，旧 wrapper 调用 `autorunne checkpoint` / `autorunne finish` 也能继续记录清楚。

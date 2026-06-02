@@ -102,6 +102,20 @@ def default_body(version: str) -> str:
     release_url = f"https://github.com/HUAFIRE777/autorunne/releases/tag/v{version}"
     pypi_url = f"https://pypi.org/project/autorunne/{version}/"
 
+    if version == "0.6.31":
+        intro = """Autorunne 0.6.31 发布了。
+
+这版补上一次真实 dogfood 暴露的小断点：用户不应该为了 Autorunne 的 checkpoint / finish 自己写 summary。现在 agent 或旧 wrapper 直接调用也能自动生成进度说明。"""
+        bullets = """
+- `autorunne checkpoint` 可以省略 `--summary`，自动根据改动文件或当前任务生成进度说明
+- `autorunne finish` 也可以省略 `--summary`，自动生成完成总结
+- 显式传 `--summary` 时仍然优先使用，旧写法和新写法可以并行
+- repo handoff 文案提醒 agent 自主记录，不要向用户索要 workflow summary
+- 继续保留 0.6.30 的自动长期记忆压缩
+""".strip()
+        why = """简单说：用户只派任务，Autorunne 在后台自己记进度。即使老 agent 指令还在跑 `autorunne checkpoint`，也不会因为缺少 summary 打断自动化。"""
+        return f"""{intro}\n\n{bullets}\n\n{why}\n\n升级：\n\n```bash\npipx upgrade autorunne --pip-args=\"--no-cache-dir -i https://pypi.org/simple\"\n```\n\n检查版本：\n\n```bash\nautorunne --version\n```\n\nRelease: {release_url}\nPyPI: {pypi_url}\n""".strip()
+
     if version == "0.6.30":
         intro = """Autorunne 0.6.30 发布了。
 
@@ -288,6 +302,7 @@ def main() -> int:
 
     version = args.version.removeprefix("v")
     default_titles = {
+        "0.6.31": "Autorunne 0.6.31 发布：summary 自动生成，不再让用户写流程说明",
         "0.6.30": "Autorunne 0.6.30 发布：自动长期记忆压缩",
         "0.6.29": "Autorunne 0.6.29 发布：长期项目记忆管理",
         "0.6.28": "Autorunne 0.6.28 发布：status / doctor 干净度补丁",

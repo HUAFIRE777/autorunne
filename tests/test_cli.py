@@ -642,6 +642,35 @@ def test_start_creates_in_progress_task_and_checkpoint_updates_next_action(pytho
     assert "Mapped webhook payloads" in log_text
 
 
+def test_checkpoint_without_summary_auto_generates_progress_note(python_repo: Path):
+    _run_in(python_repo, ["adopt"])
+    _run_in(python_repo, ["start", "--task", "Improve smoke test", "--next", "Patch script"])
+    (python_repo / "src" / "app.py").write_text("print('hello')\n", encoding="utf-8")
+
+    checkpoint_result = _run_in(python_repo, ["checkpoint", "--no-validate"])
+    assert checkpoint_result.exit_code == 0
+    assert "Checkpoint: 自动记录本轮进度" in checkpoint_result.stdout
+
+    log_text = (python_repo / ".autorunne" / "SESSION_LOG.md").read_text(encoding="utf-8")
+    assert "Summary: 自动记录本轮进度" in log_text
+    assert "src/app.py" in log_text
+
+
+def test_finish_without_summary_auto_generates_completion_note(python_repo: Path):
+    _run_in(python_repo, ["adopt"])
+    _run_in(python_repo, ["start", "--task", "Improve smoke test", "--next", "Patch script"])
+    (python_repo / "src" / "app.py").write_text("print('hello')\n", encoding="utf-8")
+
+    finish_result = _run_in(python_repo, ["finish", "--next", "Ship next lesson", "--no-validate"])
+    assert finish_result.exit_code == 0
+    assert "Finished: 完成 Improve smoke test" in finish_result.stdout
+
+    tasks_text = (python_repo / ".autorunne" / "TASKS.md").read_text(encoding="utf-8")
+    status_text = (python_repo / ".autorunne" / "STATUS.md").read_text(encoding="utf-8")
+    assert "- [x] Improve smoke test" in tasks_text
+    assert "Ship next lesson" in status_text
+
+
 def test_finish_replaces_transitional_next_actions_instead_of_accumulating_them(python_repo: Path):
     _run_in(python_repo, ["adopt"])
 

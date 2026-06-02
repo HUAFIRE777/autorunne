@@ -28,7 +28,7 @@ curl -fsSL https://raw.githubusercontent.com/HUAFIRE777/autorunne/main/scripts/i
 autorunne --version
 ```
 
-当前公开版本是 0.6.30。
+当前公开版本是 0.6.31。
 
 ## 3. 给一个仓库接入
 

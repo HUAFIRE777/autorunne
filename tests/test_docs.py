@@ -16,6 +16,7 @@ RELEASE_NOTES_0621 = ROOT / "docs" / "Autorunne-Release-Notes-0.6.21-ZH.md"
 RELEASE_NOTES_0622 = ROOT / "docs" / "Autorunne-Release-Notes-0.6.22-ZH.md"
 RELEASE_NOTES_0629 = ROOT / "docs" / "Autorunne-Release-Notes-0.6.29-ZH.md"
 RELEASE_NOTES_0630 = ROOT / "docs" / "Autorunne-Release-Notes-0.6.30-ZH.md"
+RELEASE_NOTES_0631 = ROOT / "docs" / "Autorunne-Release-Notes-0.6.31-ZH.md"
 COMMERCIAL_STABILITY = ROOT / "docs" / "Autorunne-商业稳定性说明-ZH.md"
 
 
@@ -66,7 +67,7 @@ def test_business_docs_position_autorunne_as_repo_local_memory_layer():
     release = RELEASE_NOTES_0622.read_text(encoding="utf-8")
     commercial = COMMERCIAL_STABILITY.read_text(encoding="utf-8")
 
-    assert "当前版本定位：0.6.30" in product
+    assert "当前版本定位：0.6.31" in product
     assert "repo-local 项目记忆" in product
     assert "frontend/backend/contracts" in product
     assert "商业稳定性结论" in product
@@ -129,3 +130,14 @@ def test_release_notes_0630_documents_auto_compaction_defaults():
     assert "auto_compact_threshold" in release
     assert "auto_compact_enabled" in release
     assert "PyPI：`autorunne==0.6.30`" in release
+
+
+def test_release_notes_0631_documents_automatic_summary_fallback():
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    release = RELEASE_NOTES_0631.read_text(encoding="utf-8")
+    assert "0.6.31" in readme
+    assert "summary 自动生成" in release
+    assert "autorunne checkpoint" in release
+    assert "autorunne finish" in release
+    assert "不需要问用户" in release
+    assert "PyPI：`autorunne==0.6.31`" in release
