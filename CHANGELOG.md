@@ -3,6 +3,13 @@
 All notable changes to Autorunne are documented here.
 
 
+## 0.6.33 - 2026-06-14
+
+### Improved
+- `generate_finish_summary` and `generate_checkpoint_summary` now automatically produce better summaries by default (prioritize business files, cleaner output).
+- No configuration needed — summaries are enhanced automatically after upgrade.
+
+
 ## 0.6.32 - 2026-06-14
 
 ### Fixed

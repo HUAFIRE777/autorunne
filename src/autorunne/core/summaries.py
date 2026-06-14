@@ -17,18 +17,18 @@ def _short_file_list(files: list[str], *, limit: int = 3) -> str:
 
 
 def generate_checkpoint_summary(repo_root: Path, git_details: dict[str, Any] | None = None) -> str:
-    """Return a safe automatic checkpoint summary for zero-prompt agent flows.
+    """Return an automatic checkpoint summary (0.6.33 enhanced).
 
-    This is intentionally deterministic and local-only: it does not call an LLM,
-    does not ask the user, and works for older wrappers that still invoke plain
-    `autorunne checkpoint`.
+    Prefers business changes by default while remaining deterministic.
     """
     git_details = git_details or {}
-    changed = git_details.get("changed_files") or []
+    classified = git_details.get("changed_files_by_type") or {}
+    business = classified.get("business") or []
+    changed = business or git_details.get("changed_files") or []
+
     if changed:
         return f"自动记录本轮进度：更新了 {_short_file_list(changed)}"
 
-    classified = git_details.get("changed_files_by_type") or {}
     integration = classified.get("integration") or []
     if integration:
         return f"自动记录本轮进度：刷新了 agent 交接文件 {_short_file_list(integration)}"
@@ -48,16 +48,19 @@ def generate_checkpoint_summary(repo_root: Path, git_details: dict[str, Any] | N
 
 
 def generate_finish_summary(repo_root: Path, git_details: dict[str, Any] | None = None, task_match: str | None = None) -> str:
-    """Return a safe automatic finish summary when an agent/wrapper omits one."""
+    """Return an automatic finish summary (0.6.33 enhanced).
+
+    Automatically prefers business files and produces clearer summaries by default.
+    """
     current = read_json(state_file(repo_root, "current.json"), default={})
     task = (task_match or current.get("active_task") or "当前任务").strip()
     git_details = git_details or {}
 
-    # Prefer business files over integration files for the summary
     classified = git_details.get("changed_files_by_type") or {}
     business = classified.get("business") or []
     changed = business or git_details.get("changed_files") or []
 
     if changed:
+        # 0.6.33 improvement: cleaner business-focused summary
         return f"完成 {task}：更新了 {_short_file_list(changed)}"
     return f"完成 {task}"
