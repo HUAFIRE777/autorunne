@@ -301,6 +301,24 @@ def _classify_changed_file(path: str) -> str:
     clean = path.strip()
     if not clean:
         return "other"
+
+    # Common cache / build / env directories that should never be treated as business code
+    ignore_prefixes = (
+        "__pycache__/",
+        ".pytest_cache/",
+        ".mypy_cache/",
+        ".ruff_cache/",
+        ".venv/",
+        "venv/",
+        "node_modules/",
+        "dist/",
+        "build/",
+        ".eggs/",
+        ".tox/",
+    )
+    if any(clean.startswith(p) for p in ignore_prefixes) or clean.endswith((".pyc", ".pyo", ".egg-info")):
+        return "other"
+
     integration_prefixes = (
         ".agents/skills/autorunne-workflow/",
         ".claude/skills/autorunne-workflow/",

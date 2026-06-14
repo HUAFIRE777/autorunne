@@ -2,9 +2,18 @@
 
 All notable changes to Autorunne are documented here.
 
+
+## 0.6.32 - 2026-06-14
+
+### Fixed
+- `generate_finish_summary` now prefers real business files over integration files when auto-generating finish summaries, producing more meaningful progress notes.
+- `classify_changed_files` now ignores common cache/build directories (`__pycache__`, `.pytest_cache`, `node_modules`, `dist`, `build`, `.venv`, `venv`, etc.) so they no longer appear as "Business files changed".
+- Improved stability of business vs integration file classification for real-world projects.
+
 ## 0.6.31 - 2026-06-02
 
 ### Fixed
+- `generate_finish_summary` now prefers real business files over integration files when auto-generating finish summaries, producing more meaningful progress notes.
 - `autorunne checkpoint` now accepts calls without `--summary` and automatically generates a local progress summary from changed files or the active task.
 - `autorunne finish` now also accepts calls without `--summary`, generating a completion summary from the active task and changed files.
 - Older wrappers/agent instructions that still call plain `autorunne checkpoint` / `autorunne finish` no longer break the zero-prompt workflow.
@@ -50,6 +59,7 @@ All notable changes to Autorunne are documented here.
 ## 0.6.28 - 2026-05-20
 
 ### Fixed
+- `generate_finish_summary` now prefers real business files over integration files when auto-generating finish summaries, producing more meaningful progress notes.
 - `autorunne status` now treats root-level START_HERE-style mirror files as optional when the canonical `.autorunne/views/*` handoff views exist, avoiding misleading Missing files output.
 - Added `autorunne doctor --handoff` for a focused handoff-consistency check that exits 0 when the handoff is clean, even if optional setup such as hooks or pre-commit is absent.
 - Default `autorunne doctor` now separates Blocking issues from Optional warnings, so hooks, pre-commit, repo wrappers, and repo integrations no longer fail doctor when core handoff state is healthy.
@@ -74,6 +84,7 @@ All notable changes to Autorunne are documented here.
 ## 0.6.26 - 2026-05-20
 
 ### Fixed
+- `generate_finish_summary` now prefers real business files over integration files when auto-generating finish summaries, producing more meaningful progress notes.
 - `finish --next` now keeps `current.next_action`, `current.next_product_task`, `tasks.next_up[0]`, `NEXT_ACTION.md`, `START_HERE.md`, and `autorunne status` aligned on the same main product next action.
 - `workflow_follow_up` is now kept as a process note only and no longer overrides the main next action after a task finishes.
 - `current.json` now stores structured `last_validation` evidence with command, status, timestamp, and output summary.
@@ -86,6 +97,7 @@ All notable changes to Autorunne are documented here.
 ## 0.6.25 - 2026-05-20
 
 ### Fixed
+- `generate_finish_summary` now prefers real business files over integration files when auto-generating finish summaries, producing more meaningful progress notes.
 - Render/status now clean stale completed tasks out of `current.next_product_task` before writing handoff views.
 - Workflow or release housekeeping notes such as public-baseline reminders are kept in `workflow_follow_up` instead of being shown as product work.
 - `autorunne status` now labels `.autorunne` Git tracking explicitly as `Autorunne state tracked by git`, with `no (local-only handoff state)` when the handoff state is intentionally local-only.
@@ -134,6 +146,7 @@ All notable changes to Autorunne are documented here.
 ## 0.6.21 - 2026-05-06
 
 ### Fixed
+- `generate_finish_summary` now prefers real business files over integration files when auto-generating finish summaries, producing more meaningful progress notes.
 - `autorunne finish` no longer keeps the just-finished matched/active task as `current.next_product_task` when `--next` is a workflow follow-up.
 - After a task is completed, Autorunne falls back to the next pending product task when one exists; otherwise `next_product_task` is stored as `null` and rendered as `无`.
 - `workflow_follow_up` behavior is preserved, so finish follow-up notes such as reviewing rendered `STATUS.md` / `SESSION_LOG.md` still appear in the workflow slot.
@@ -145,6 +158,7 @@ All notable changes to Autorunne are documented here.
 ## 0.6.20 - 2026-05-06
 
 ### Fixed
+- `generate_finish_summary` now prefers real business files over integration files when auto-generating finish summaries, producing more meaningful progress notes.
 - Repo skill front matter is now generated from the running Autorunne package version, so `.agents/skills/autorunne-workflow/SKILL.md` and `.claude/skills/autorunne-workflow/SKILL.md` refresh to `version: 0.6.20` instead of staying on older template versions.
 - `SESSION_LOG.md` validation entries now keep the validation command, status, and a concise output summary instead of dumping full build/test output into the human-facing log.
 - Repeated `workspace open auto-resume` entries are deduplicated when consecutive `autorunne open` calls produce the same state summary.
@@ -158,6 +172,7 @@ All notable changes to Autorunne are documented here.
 ## 0.6.19 - 2026-05-05
 
 ### Fixed
+- `generate_finish_summary` now prefers real business files over integration files when auto-generating finish summaries, producing more meaningful progress notes.
 - `autorunne open` now tolerates existing read-only repo integration files in direct-agent sandboxes such as Codex workspace modes.
 - If files like `.agents/skills/autorunne-workflow/SKILL.md` already exist but cannot be rewritten, Autorunne skips that rewrite and continues updating `.autorunne/` state instead of aborting.
 - Direct `autorunne ingest --source codex ...` flows are more reliable because their internal `open` resume step no longer fails only because a hidden integration file is protected by the sandbox.
@@ -244,6 +259,7 @@ All notable changes to Autorunne are documented here.
 - added dedicated Chinese 0.6.13 release notes for frontend/backend/contracts monorepo detection and PyPI upgrade guidance
 
 ### Fixed
+- `generate_finish_summary` now prefers real business files over integration files when auto-generating finish summaries, producing more meaningful progress notes.
 - `autorunne sync` now detects multi-package Node/TypeScript repositories even when the root has no `package.json`.
 - First-level package directories such as `frontend`, `backend`, `contracts`, `sdk`, `integrations`, plus `apps/*` and `packages/*`, are scanned for `package.json` files.
 - Top-level state is promoted from package details, so monorepos no longer render as `generic` / `unknown` when package data exists.

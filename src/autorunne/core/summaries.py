@@ -52,7 +52,12 @@ def generate_finish_summary(repo_root: Path, git_details: dict[str, Any] | None 
     current = read_json(state_file(repo_root, "current.json"), default={})
     task = (task_match or current.get("active_task") or "当前任务").strip()
     git_details = git_details or {}
-    changed = git_details.get("changed_files") or []
+
+    # Prefer business files over integration files for the summary
+    classified = git_details.get("changed_files_by_type") or {}
+    business = classified.get("business") or []
+    changed = business or git_details.get("changed_files") or []
+
     if changed:
         return f"完成 {task}：更新了 {_short_file_list(changed)}"
     return f"完成 {task}"
