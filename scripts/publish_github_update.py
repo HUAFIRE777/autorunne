@@ -102,6 +102,20 @@ def default_body(version: str) -> str:
     release_url = f"https://github.com/HUAFIRE777/autorunne/releases/tag/v{version}"
     pypi_url = f"https://pypi.org/project/autorunne/{version}/"
 
+    if version == "0.7.0":
+        intro = """🎉 AutoRunne 2.0 (v0.7.0) 重大升级正式发布！
+
+这是一次里程碑式的飞跃：我们将 Auto-Dream 认知睡眠引擎深度集成到 AutoRunne 核心，让跨 Agent（Claude Code、Codex、Cursor、Antigravity）在反复接力编码时不仅能看清任务进度，更能“自主反思沉淀、越写越聪明”。"""
+        bullets = """
+- **Auto-Dream 4 阶段认知睡眠图谱**：内置 Orient（定向）、Gather Signal（提取修正/架构信号）、Synthesize（结晶经验）、Prune & Index（修剪归档与建索）四大节点。
+- **严格死守 200 行认知预算**：自动将详细领域知识分流至 `.autorunne/memory/` 专题文件，根目录索引严格卡在 200 行以内，杜绝 Agent 上下文爆炸。
+- **“谁开发谁提纯”机制**：不强行绑定外部 API 或特定厂商模型，写代码的模型拥有最热记忆，在任务交接与完成时在上下文内自然提纯，真正实现多模型/跨 Agent 无缝接力。
+- **全生命周期无感自动触发**：无需开发者频繁敲命令行，Git post-commit hook、`autorunne finish` 与 `autorunne auto-finish` 自动在后台无声运转完成梦境沉淀。
+- **全新命令**：`autorunne dream --status`（查看记忆水位）与 `autorunne dream --record`（显式沉淀铁律）。
+""".strip()
+        why = """简单说：从“项目状态记录层”跃升为“具备认知自演化能力的项目大脑”。开发者只管专心写业务，记忆的沉淀、去敏与预算裁剪全交由系统自动完成。"""
+        return f"""{intro}\n\n{bullets}\n\n{why}\n\n升级：\n\n```bash\npipx upgrade autorunne --pip-args=\"--no-cache-dir -i https://pypi.org/simple\"\n```\n\n检查版本：\n\n```bash\nautorunne --version\n```\n\nRelease: {release_url}\nPyPI: {pypi_url}\n""".strip()
+
     if version == "0.6.34":
         intro = """Autorunne 0.6.34 发布了。
 
