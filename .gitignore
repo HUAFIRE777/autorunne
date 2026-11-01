@@ -3,6 +3,9 @@ __pycache__/
 *.pyo
 *.egg-info/
 .venv/
+.venv
+.DS_Store
+uv.lock
 .pytest_cache/
 dist/
 .dist-release/

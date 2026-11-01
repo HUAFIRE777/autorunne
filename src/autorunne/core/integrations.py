@@ -57,6 +57,14 @@ When this repo skill is available, load this repo skill as the workflow source o
 3. `.autorunne/views/TASKS.md`
 4. `.autorunne/views/DECISIONS.md`
 5. `.autorunne/views/NEXT_ACTION.md`
+
+## In-Context Cognitive Reflection (Auto-Dream)
+AutoRunne 2.0 integrates the Auto-Dream cognitive engine:
+1. Whichever model is developing or fixing code in this session possesses the deepest, freshest context.
+2. Upon task completion (`autorunne finish` or `autorunne auto-finish`), the dream engine automatically extracts and consolidates cognitive signals in the background into `.autorunne/views/MEMORY.md` (or `.agent/memory/MEMORY.md`).
+3. You should distill any critical lessons, recurring bugs, or architectural decisions directly into memory using `autorunne dream --record "<rule>"` or include them in your final summary.
+4. The memory index strictly enforces a <200 line budget. Do not let memory explode. Older details are safely pruned into deep history.
+5. No manual CLI invocation or external model API call is required by the user—the model self-distills in-context, preserving cross-session and cross-agent context seamlessly.
 """
 
 
@@ -77,6 +85,7 @@ alwaysApply: true
 7. If a fresh user task is not recorded yet, capture it with `autorunne ingest --source cursor --task <task>`.
 8. When code changes are verified, write the result back through Autorunne so the rendered views stay fresh.
 9. In your final report, include changed files, completion status, and the Autorunne commands executed.
+10. Cognitive Self-Reflection (Auto-Dream): Whichever model codes distills the learnings in-context. On task completion, AutoRunne automatically consolidates insights into the 200-line bounded memory index without requiring manual user CLI commands.
 """
 
 
@@ -96,6 +105,7 @@ Required behavior:
 8. Use `autorunne checkpoint` for meaningful partial progress.
 9. Use `autorunne finish` after verification is complete.
 10. Include changed files, completion status, and Autorunne commands in the final report.
+11. Auto-Dream Reflection: Distill key architecture lessons in-context upon finish. AutoRunne consolidates memory automatically within the 200-line budget.
 """
 
 
@@ -111,6 +121,7 @@ Short instruction layer for this repo:
 6. Do not write `.autorunne/state/*` directly.
 7. If a fresh task is not recorded yet, capture it with `autorunne ingest --source <agent> --task <task>`.
 8. Wrappers like `./.autorunne/bin/ar-codex`, `./.autorunne/bin/ar-claude`, or `./.autorunne/bin/ar-hermes` are optional fallback entrypoints, not the required default UX.
+9. Auto-Dream Cognitive Reflection: The active model self-reflects in-context on task completion. Auto-distill insights into memory without manual commands.
 """
 
 

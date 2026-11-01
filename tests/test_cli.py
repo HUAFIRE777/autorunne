@@ -68,7 +68,7 @@ def test_release_version_contract_matches_runtime_config_and_metadata():
     metadata = tomllib.loads(
         (root / "pyproject.toml").read_text(encoding="utf-8")
     )
-    assert __version__ == "0.6.34"
+    assert __version__ == "0.7.0"
     assert metadata["project"]["version"] == __version__
     assert WorkflowConfig().version == __version__
 

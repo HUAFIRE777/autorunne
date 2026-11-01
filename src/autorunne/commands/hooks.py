@@ -37,7 +37,9 @@ def run(target: Path, with_pre_commit: bool = False) -> dict:
     sync_script = "#!/usr/bin/env sh\nautorunne sync >/dev/null 2>&1 || true\n"
     post_checkout = install_hook(repo_root, "post-checkout", sync_script)
     post_merge = install_hook(repo_root, "post-merge", sync_script)
-    hooks = [str(post_checkout), str(post_merge)]
+    dream_script = "#!/usr/bin/env sh\nautorunne dream >/dev/null 2>&1 || true\n"
+    post_commit = install_hook(repo_root, "post-commit", dream_script)
+    hooks = [str(post_checkout), str(post_merge), str(post_commit)]
     precommit_config = None
     if with_pre_commit:
         pre_script = "#!/usr/bin/env sh\nautorunne doctor >/dev/null 2>&1 || exit 1\n"

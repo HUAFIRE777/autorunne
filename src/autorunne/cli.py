@@ -17,6 +17,7 @@ from autorunne.commands import checkpoint as checkpoint_cmd
 from autorunne.commands import completion as completion_cmd
 from autorunne.commands import daemon as daemon_cmd
 from autorunne.commands import doctor as doctor_cmd
+from autorunne.commands import dream as dream_cmd
 from autorunne.commands import export as export_cmd
 from autorunne.commands import finish as finish_cmd
 from autorunne.commands import hermes_task as hermes_task_cmd
@@ -680,6 +681,28 @@ def compact_command(
         for path_item in result["archive_files"]:
             console.print(f"- {path_item}")
     console.print(f"Summary: {result['summary_path']}")
+
+
+@app.command()
+def dream(
+    path: str | None = typer.Option(None, help="Target repository path"),
+    status: bool = typer.Option(False, "--status", help="Inspect memory index line budget and health without executing a cycle."),
+    record: str | None = typer.Option(None, "--record", help="Explicitly record a crystallized rule/insight into memory."),
+):
+    """Run cognitive auto-dream consolidation or inspect memory budget."""
+    result = _run_or_exit(lambda: dream_cmd.run(_target(path), status_only=status, record_rule=record))
+    if status:
+        console.print(f"Memory Status: [bold]{result['status'].upper()}[/bold]")
+        console.print(f"Index Path: {result['path']}")
+        console.print(f"Line Budget: {result['lines']} / {result['max_lines']} lines")
+    else:
+        console.print(f"Auto-Dream cycle completed for: [bold]{result['repo_root']}[/bold]")
+        if "phases" in result:
+            console.print(f"Phases executed: {', '.join(result['phases'])}")
+        if "signals_found" in result:
+            console.print(f"Signals processed: {result['signals_found']}")
+        if "index_lines" in result:
+            console.print(f"Index line count: {result['index_lines']} (budget: <200 lines)")
 
 
 @app.command()

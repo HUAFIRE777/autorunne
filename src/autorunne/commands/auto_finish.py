@@ -4,6 +4,7 @@ from pathlib import Path
 
 from autorunne.core.auto_record import auto_finish_active_task
 from autorunne.core.gitops import detect_repo_root
+from autorunne.core.dream import execute_dream_cycle
 
 
 def run(target: Path, *, source: str = "agent") -> dict:
@@ -12,4 +13,9 @@ def run(target: Path, *, source: str = "agent") -> dict:
         raise RuntimeError("autorunne auto-finish needs a Git repository first. ⏰ Run `git init` first, then rerun `autorunne auto-finish`.")
 
     result = auto_finish_active_task(repo_root, source=source)
-    return {"repo_root": str(repo_root), **result}
+    try:
+        dream_result = execute_dream_cycle(repo_root)
+    except Exception:
+        dream_result = None
+
+    return {"repo_root": str(repo_root), "dream": dream_result, **result}

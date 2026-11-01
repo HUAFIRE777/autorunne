@@ -5,6 +5,7 @@ from pathlib import Path
 
 from autorunne.core.gitops import detect_repo_root
 from autorunne.core.memory import maybe_auto_compact
+from autorunne.core.dream import execute_dream_cycle
 from autorunne.core.paths import load_config, read_json, state_file
 from autorunne.core.scanner import scan_repo
 from autorunne.core.summaries import generate_finish_summary
@@ -74,6 +75,10 @@ def run(
         validation=validation,
     )
     auto_compact = maybe_auto_compact(repo_root, reason="finish")
+    try:
+        dream_result = execute_dream_cycle(repo_root, explicit_rule=decision or clean_summary)
+    except Exception:
+        dream_result = None
 
     return {
         "repo_root": str(repo_root),
@@ -86,4 +91,5 @@ def run(
         "raw_changed_files": git_details.get("raw_changed_files", git_details["changed_files"]),
         "validation": validation,
         "auto_compact": auto_compact,
+        "dream": dream_result,
     }
