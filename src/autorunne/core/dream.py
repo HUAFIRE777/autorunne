@@ -263,6 +263,15 @@ def execute_dream_cycle(repo_root: Path, *, explicit_rule: str | None = None) ->
 
     final_budget = check_index_budget(index_path)
 
+    # 扩展挂载: 若存在 3D-language 或特定项目的专有生长引擎，无缝联动驱动
+    custom_hook = repo_root / "autodream_3d.py"
+    if custom_hook.exists():
+        try:
+            import subprocess
+            subprocess.run([sys.executable, str(custom_hook), "--grow"], cwd=repo_root, capture_output=True, timeout=10)
+        except Exception:
+            pass
+
     return {
         "status": "ok" if final_budget["valid"] else "warning",
         "index_lines": final_budget["lines"],
