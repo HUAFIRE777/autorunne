@@ -54,3 +54,57 @@ def test_cli_dream_status_and_record(tmp_path: Path):
     mem_file = tmp_path / ".autorunne" / "memory" / "MEMORY.md"
     assert mem_file.exists()
     assert len(mem_file.read_text(encoding="utf-8").splitlines()) < 200
+
+
+def test_hua_brain_integration(tmp_path: Path):
+    from autorunne.core.hua_brain import (
+        classify_domain,
+        resolve_hua_brain,
+        sync_signals_to_hua_brain,
+    )
+
+    # 1. Domain classification tests
+    assert classify_domain("Three.js WebGL WebGPU rendering pipeline") == "graphics_3d"
+    assert classify_domain("Reverse engineering AST parser EBNF grammar") == "reverse_engineering"
+    assert classify_domain("Video multimodal ffmpeg cinematic camera") == "video_multimodal"
+    assert classify_domain("ROI conversion business growth strategy") == "business_growth"
+
+    # 2. Mock hua-brain workspace
+    mock_brain = tmp_path / "mock-brain"
+    (mock_brain / "core").mkdir(parents=True)
+    (mock_brain / "core" / "HUA_CHARTER.md").write_text("# Charter\n", encoding="utf-8")
+    (mock_brain / "index").mkdir(parents=True)
+    (mock_brain / "dossiers" / "graphics_3d").mkdir(parents=True)
+
+    # Test resolution via link
+    mock_repo = tmp_path / "mock-repo"
+    mock_repo.mkdir()
+    (mock_repo / "brain").symlink_to(mock_brain)
+
+    resolved = resolve_hua_brain(mock_repo)
+    assert resolved == mock_brain
+
+    # Test sync execution
+    signals = [{
+        "kind": "user_correction",
+        "topic": "graphics_3d",
+        "timestamp": "2026-11-02",
+        "summary": "不是硬编码颜色，必须使用第一性原理进行设计",
+        "source": "test_signal",
+    }]
+    report = sync_signals_to_hua_brain(mock_repo, signals, use_vertex=False)
+    assert report["synced"] is True
+    assert len(report["dossiers_created"]) >= 1
+
+    # Verify dossier created
+    dossiers = list((mock_brain / "dossiers" / "graphics_3d").glob("*.md"))
+    assert len(dossiers) >= 1
+    content = dossiers[0].read_text(encoding="utf-8")
+    assert "华哥决策与第一性原理指示" in content
+    assert "第一性原理" in content
+
+    # 3. Test full execute_dream_cycle auto-sync
+    cycle_res = execute_dream_cycle(mock_repo, explicit_rule="必须使用第一性原理，拒绝凭空臆想")
+    assert "hua_brain" in cycle_res
+    assert cycle_res["hua_brain"] is not None
+    assert cycle_res["hua_brain"]["synced"] is True

@@ -4,6 +4,7 @@ from pathlib import Path
 
 from autorunne.core.gitops import detect_repo_root
 from autorunne.core.state_engine import manual_record, workflow_exists
+from autorunne.core.dream import execute_dream_cycle
 
 
 def run(
@@ -28,6 +29,11 @@ def run(
         decision=decision,
         event_type=event_type,
     )
+    try:
+        dream_result = execute_dream_cycle(repo_root, explicit_rule=decision or summary)
+    except Exception:
+        dream_result = None
+
     return {
         "repo_root": str(repo_root),
         "summary": summary.strip(),
@@ -35,4 +41,5 @@ def run(
         "task": result["payload"].get("task"),
         "decision": result["payload"].get("decision"),
         "event_type": event_type,
+        "dream": dream_result,
     }

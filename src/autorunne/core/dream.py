@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -272,6 +273,14 @@ def execute_dream_cycle(repo_root: Path, *, explicit_rule: str | None = None) ->
         except Exception:
             pass
 
+    # 终身认知大脑挂载: 若检测到统一知识中枢 hua-brain，自动将高价值认知信号静默蒸馏入库并同步
+    hua_brain_report = None
+    try:
+        from autorunne.core.hua_brain import sync_signals_to_hua_brain
+        hua_brain_report = sync_signals_to_hua_brain(repo_root, signals)
+    except Exception:
+        pass
+
     return {
         "status": "ok" if final_budget["valid"] else "warning",
         "index_lines": final_budget["lines"],
@@ -279,4 +288,5 @@ def execute_dream_cycle(repo_root: Path, *, explicit_rule: str | None = None) ->
         "signals_gathered": len(signals),
         "modified_topics": modified_topics,
         "index_path": str(index_path),
+        "hua_brain": hua_brain_report,
     }
