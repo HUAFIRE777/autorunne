@@ -8,6 +8,8 @@ from autorunne.core.scanner import recommend_next_action, scan_repo
 from autorunne.core.state_engine import bootstrap_workspace, record_integration
 from autorunne.core.integrations import install_integrations
 from autorunne.core.vscode import install_vscode_integration
+from autorunne.core.hua_brain import link_hua_brain
+from autorunne.commands import hooks
 from autorunne.models.config import WorkflowConfig
 
 
@@ -20,6 +22,17 @@ def run(target: Path, with_vscode: bool = False) -> dict:
     exclude_path = ensure_local_exclude(repo_root)
     integration = install_integrations(repo_root, tool="all", scope="repo")
     record_integration(repo_root, scope="repo", tools=integration["tools"], wrappers=integration["wrappers"], action="integration_installed", changed_paths=integration.get("paths", []), skipped_paths=integration.get("skipped_paths", []))
+    
+    # Auto-install git hooks (post-commit -> autorunne dream) & link hua-brain
+    try:
+        hooks.run(repo_root)
+    except Exception:
+        pass
+    try:
+        link_hua_brain(repo_root)
+    except Exception:
+        pass
+
     result = {
         "repo_root": str(repo_root),
         "exclude_path": str(exclude_path),

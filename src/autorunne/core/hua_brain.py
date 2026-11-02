@@ -88,6 +88,37 @@ def resolve_hua_brain(repo_root: Path | None = None) -> Path | None:
     return None
 
 
+def link_hua_brain(repo_root: Path) -> Path | None:
+    """
+    Ensures the target project repository has a symlink `brain -> hua-brain`
+    and ignores it in .git/info/exclude, enabling any coding agent to instantly
+    read and autonomously learn the First-Principles Charter & master index.
+    """
+    brain_root = resolve_hua_brain(repo_root)
+    if not brain_root or brain_root.resolve() == repo_root.resolve():
+        return None
+
+    brain_link = repo_root / "brain"
+    if not brain_link.exists() and not brain_link.is_symlink():
+        try:
+            brain_link.symlink_to(brain_root)
+        except Exception:
+            pass
+
+    # Exclude brain from git tracking in this repository
+    git_exclude = repo_root / ".git" / "info" / "exclude"
+    if git_exclude.parent.exists():
+        try:
+            current_excludes = git_exclude.read_text(encoding="utf-8") if git_exclude.exists() else ""
+            if "brain" not in current_excludes.splitlines():
+                with open(git_exclude, "a", encoding="utf-8") as f:
+                    f.write("\nbrain\n")
+        except Exception:
+            pass
+
+    return brain_root
+
+
 def classify_domain(text: str) -> str:
     """Classifies content into one of hua-brain's 4 core knowledge domains."""
     lower = text.lower()

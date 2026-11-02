@@ -273,10 +273,11 @@ def execute_dream_cycle(repo_root: Path, *, explicit_rule: str | None = None) ->
         except Exception:
             pass
 
-    # 终身认知大脑挂载: 若检测到统一知识中枢 hua-brain，自动将高价值认知信号静默蒸馏入库并同步
+    # 终身认知大脑挂载: 自动确保软链接桥接，并将高价值认知信号静默蒸馏入库并同步
     hua_brain_report = None
     try:
-        from autorunne.core.hua_brain import sync_signals_to_hua_brain
+        from autorunne.core.hua_brain import link_hua_brain, sync_signals_to_hua_brain
+        link_hua_brain(repo_root)
         hua_brain_report = sync_signals_to_hua_brain(repo_root, signals)
     except Exception:
         pass
