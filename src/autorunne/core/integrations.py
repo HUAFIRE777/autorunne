@@ -6,7 +6,7 @@ from pathlib import Path
 from autorunne import __version__ as AUTORUNNE_VERSION
 from autorunne.core.paths import ensure_dir, workflow_bin_dir, write_text
 
-VALID_TOOLS = {"codex", "claude", "hermes", "cursor", "copilot", "all"}
+VALID_TOOLS = {"codex", "claude", "hermes", "cursor", "copilot", "muse", "all"}
 VALID_SCOPES = {"repo", "user"}
 
 
@@ -17,6 +17,7 @@ def _skill_text(tool: str) -> str:
         "hermes": "Hermes",
         "cursor": "Cursor / Cursor Agent",
         "copilot": "GitHub Copilot",
+        "muse": "Muse / Muse Fleet",
     }.get(tool, "your coding agent")
     wrapper = {
         "codex": "./.autorunne/bin/ar-codex",
@@ -24,6 +25,7 @@ def _skill_text(tool: str) -> str:
         "hermes": "./.autorunne/bin/ar-hermes",
         "cursor": "Cursor / Cursor Agent repo instructions",
         "copilot": "GitHub Copilot repo instructions",
+        "muse": "./.autorunne/bin/ar-muse",
     }.get(tool, "./.autorunne/bin/ar-codex")
     return f"""---
 name: autorunne-workflow
