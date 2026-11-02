@@ -256,6 +256,42 @@ def harvest_antigravity_history(limit_count: int = 15) -> list[dict[str, Any]]:
     except Exception:
         pass
     return signals[:limit_count]
+
+
+def harvest_grok_history(limit_count: int = 15) -> list[dict[str, Any]]:
+    """Pulls recent user directions from Grok session prompt histories if present."""
+    grok_sessions = Path.home() / ".grok" / "sessions"
+    if not grok_sessions.exists():
+        return []
+    signals: list[dict[str, Any]] = []
+    try:
+        histories = sorted(
+            grok_sessions.glob("*/prompt_history.jsonl"),
+            key=lambda p: p.stat().st_mtime,
+            reverse=True,
+        )
+        for h_file in histories[:2]:
+            lines = read_file_tail_lines(h_file, max_bytes=65536)
+            for line in lines[-limit_count:]:
+                if not line.strip():
+                    continue
+                try:
+                    data = json.loads(line)
+                    prompt = data.get("prompt", "")
+                    if len(prompt) > 15:
+                        cleaned = scrub_secrets(prompt)
+                        if any(t.search(cleaned) for t in CORRECTION_TRIGGERS) or any(t.search(cleaned) for t in ARCH_TRIGGERS):
+                            signals.append({
+                                "kind": "user_correction" if any(t.search(cleaned) for t in CORRECTION_TRIGGERS) else "arch_decision",
+                                "topic": classify_domain(cleaned),
+                                "timestamp": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+                                "summary": cleaned[:160].replace("\n", " "),
+                                "source": "grok_session",
+                            })
+                except Exception:
+                    pass
+    except Exception:
+        pass
     return signals[:limit_count]
 
 
@@ -539,6 +575,7 @@ def sync_signals_to_hua_brain(
     all_signals.extend(harvest_recent_git_signals(repo_root))
     all_signals.extend(harvest_claude_history(project_name))
     all_signals.extend(harvest_antigravity_history())
+    all_signals.extend(harvest_grok_history())
 
     saved_dossiers: list[str] = []
 
